@@ -1,0 +1,2 @@
+class RulesScreen(Screen):
+    pass

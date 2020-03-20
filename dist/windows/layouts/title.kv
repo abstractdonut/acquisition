@@ -1,0 +1,39 @@
+<TitleScreen>:
+    GridLayout:
+        rows: 2
+        cols: 1
+        TitleLabel:
+            size_hint: 1, .35
+            text: "ACQUISITION"
+            font_size: 36
+        GridLayout:
+            rows: 6
+            cols: 1
+            ButtonLabel:
+                text: "Play"
+                on_press: root.play()
+            ButtonLabel:
+                text: "Continue"
+                on_press: root.continue_game()
+            ButtonLabel:
+                text: "Help "
+                on_press: root.help()
+            ButtonLabel:
+                text: "Settings"
+                on_press: root.settings()
+            ButtonLabel:
+                text: "About"
+                on_press: root.about()
+            Label:
+                text: ""
+
+
+<ButtonLabel@ButtonBehavior+Label>:
+    font_name: "fonts/brendohand/Brendohand.otf"
+    font_size: 24
+    color: .85, .85, .85, 1
+
+<TitleLabel@Label>:
+    font_name: "fonts/brendohand/Brendohand.otf"
+    font_size: 26
+    color: 1, 0, 0, 1
