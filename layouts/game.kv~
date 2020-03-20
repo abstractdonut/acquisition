@@ -1,0 +1,96 @@
+<GameScreen>:
+    GridLayout:
+        rows: 3
+        cols: 1
+        GridLayout:
+            rows: 3
+            cols: 1
+            size_hint: 1, .2
+            Label:
+                text: ""
+            CustomLabel:
+                size_hint: 1, .3
+                id: status
+                text: ""
+                color: .9, .9, .9, 1
+            GridLayout: # Scores
+                rows: 1
+                cols: 2
+                CustomLabel:
+                    id: score1
+                    text: '0'
+                    color: 1, 0, 0, 1
+                CustomLabel:
+                    id: score2
+                    text: '0'
+                    color: 0, 0, 1, 1
+        FloatLayout:
+            PieceLayout:
+                size_hint: None, None
+                id: piece_layout
+                #size_hint: None, 1
+        FloatLayout:
+            size_hint: 1, .1
+            GridLayout:
+                id: controls
+                rows: 1
+                cols: 3
+                size_hint: None, 1
+                CustomButton:
+                    text: "Undo"
+                    on_press: root.undo()
+                CustomButton:
+                    text: "New Game"
+                    on_press: root.reset()
+                CustomButton:
+                    text: "Redo"
+                    on_press: root.redo()
+
+#<PieceLayout>:
+#    pass
+
+<Piece>:
+    size_hint: None, None
+    Image:
+        id: background
+        size_hint: None, None
+        size: self.parent.size
+        pos: self.parent.pos
+    Image:
+        id: foreground
+        size_hint: None, None
+        size: self.parent.size
+        pos: self.parent.pos
+
+
+<CustomLabel@Label>:
+    font_name: "fonts/brendohand/Brendohand.otf"
+    font_size: 26
+
+<CustomButton@Button>:
+    font_name: "fonts/brendohand/Brendohand.otf"
+    font_size: 26
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

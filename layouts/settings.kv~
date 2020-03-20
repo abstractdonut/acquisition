@@ -1,0 +1,47 @@
+<SettingsScreen>:
+    GridLayout:
+        rows: 2
+        cols: 1
+        TitleLabel:
+            text: "SETTINGS"
+            font_size: 30
+        GridLayout:
+            rows: 7
+            cols: 1
+            ButtonLabel:
+                id: board_size
+                text: "board size is 7, 7"
+                on_press: root.alter_board_size()
+            ButtonLabel:
+                id: mode
+                text: "move by drag"
+                on_press: root.alter_mode()
+            ButtonLabel:
+                id: player1
+                text: "player 1 is human"
+                on_press: root.alter_player1()
+            ButtonLabel:
+                id: player2
+                text: "player 2 is a computer"
+                on_press: root.alter_player2()
+            ButtonLabel:
+                id: sound
+                text: "sound enabled"
+                on_press: root.alter_sound()
+            ButtonLabel:
+                id: speed
+                text: "computer move speed is fast"
+                on_press: root.alter_speed()
+            Label:
+                text: ""
+
+
+<ButtonLabel@ButtonBehavior+Label>:
+    font_name: "fonts/brendohand/Brendohand.otf"
+    font_size: 24
+    color: .85, .85, .85, 1
+
+<TitleLabel@Label>:
+    font_name: "fonts/brendohand/Brendohand.otf"
+    font_size: 26
+    color: 1, 0, 0, 1
