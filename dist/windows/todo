@@ -11,7 +11,7 @@
 [X] add a stacking sound effect and a setting to disable/enable the sound effect (with a corresponding enable/disable sound widget in the game UI)
 [X] add a simple minimax search to evaluate moves so that one or both players can be replaced by a computer.
 [ ] consider adding new types of cylinders with color coded values (white/grey - 1; red - 5)
-[ ] animate computer movement
+[X] animate computer movement
 [ ] implement 'click' mode
 [ ] implement game persistance. Note that a new game should _not_ save on closing except after a move has been made.
 

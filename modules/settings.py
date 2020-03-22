@@ -16,7 +16,7 @@ class SettingsScreen(Screen):
     sound = OptionProperty("enabled", options=["enabled", "disabled"])
     speed = OptionProperty("fast", options=["immediate", "fast", "slow"])
     grid = OptionProperty("enabled", options=["enabled", "disabled"])
-    font = StringProperty("fonts/Brendohand.otf")
+    font = StringProperty("")
     
     def retrieve_fonts(self):
         filenames = os.listdir('fonts/')

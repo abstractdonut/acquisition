@@ -46,7 +46,14 @@ class AcquisitionSM(ScreenManager):
         self.keyboard = Window.request_keyboard(self.keyboard_closed, self)
         self.keyboard.bind(on_key_down=self.on_key_down)
         settings = self.settings_screen.load_settings()
+        self.settings_screen.bind(font=self.on_font)
         self.game_screen.import_settings(settings)
+        self.on_font(self.settings_screen, self.settings_screen.font)
+    
+    def on_font(self, instance, font):
+        print("on_font reached")
+        for screen in self.screens:
+            screen.set_font(font)
     
     # https://stackoverflow.com/questions/17280341/how-do-you-check-for-keyboard-events-with-kivy
     def keyboard_closed(self):

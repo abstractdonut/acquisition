@@ -3,6 +3,7 @@
         rows: 2
         cols: 1
         TitleLabel:
+            id: title
             size_hint: 1, .35
             text: "ACQUISITION"
             font_size: 36
@@ -10,18 +11,23 @@
             rows: 6
             cols: 1
             ButtonLabel:
+                id: play
                 text: "Play"
                 on_press: root.play()
             ButtonLabel:
+                id: continue_game
                 text: "Continue"
                 on_press: root.continue_game()
             ButtonLabel:
+                id: help
                 text: "Help "
                 on_press: root.help()
             ButtonLabel:
+                id: settings
                 text: "Settings"
                 on_press: root.settings()
             ButtonLabel:
+                id: about
                 text: "About"
                 on_press: root.about()
             Label:
@@ -29,11 +35,11 @@
 
 
 <ButtonLabel@ButtonBehavior+Label>:
-    font_name: "fonts/brendohand/Brendohand.otf"
+    font_name: "fonts/Brendohand.otf"
     font_size: 24
     color: .85, .85, .85, 1
 
 <TitleLabel@Label>:
-    font_name: "fonts/brendohand/Brendohand.otf"
+    font_name: "fonts/Brendohand.otf"
     font_size: 26
     color: 1, 0, 0, 1

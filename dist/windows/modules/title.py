@@ -4,6 +4,15 @@ class TitleScreen(Screen):
     def on_parent(self, instance, parent):
         self.screenmanager = parent
     
+    def set_font(self, font):
+        print("setting font for title")
+        self.ids.title.font_name = font
+        self.ids.play.font_name = font
+        self.ids.continue_game.font_name = font
+        self.ids.help.font_name = font
+        self.ids.settings.font_name = font
+        self.ids.about.font_name = font
+    
     def play(self):
         self.screenmanager.transition.direction = "left"
         self.screenmanager.current = "game"

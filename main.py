@@ -48,6 +48,7 @@ class AcquisitionSM(ScreenManager):
         settings = self.settings_screen.load_settings()
         self.settings_screen.bind(font=self.on_font)
         self.game_screen.import_settings(settings)
+        self.on_font(self.settings_screen, self.settings_screen.font)
     
     def on_font(self, instance, font):
         print("on_font reached")
