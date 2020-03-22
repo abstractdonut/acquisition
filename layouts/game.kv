@@ -34,17 +34,24 @@
             GridLayout:
                 id: controls
                 rows: 1
-                cols: 3
+                cols: 4
                 size_hint: None, 1
                 CustomButton:
+                    id: undo
                     text: "Undo"
-                    on_press: root.undo()
+                    on_release: root.undo()
                 CustomButton:
+                    id: reset
                     text: "New Game"
-                    on_press: root.reset()
+                    on_release: root.reset()
+                CustomButton:
+                    id: _reload
+                    text: "Reload"
+                    on_release: root.reload()
                 CustomButton:
                     text: "Redo"
-                    on_press: root.redo()
+                    id: redo
+                    on_release: root.redo()
 
 #<PieceLayout>:
 #    pass
@@ -64,11 +71,11 @@
 
 
 <CustomLabel@Label>:
-    font_name: "fonts/brendohand/Brendohand.otf"
+    font_name: "fonts/Brendohand.otf"
     font_size: 26
 
 <CustomButton@Button>:
-    font_name: "fonts/brendohand/Brendohand.otf"
+    font_name: "fonts/Brendohand.otf"
     font_size: 26
 
 

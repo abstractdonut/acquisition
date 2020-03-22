@@ -3,10 +3,12 @@
         rows: 2
         cols: 1
         TitleLabel:
+            id: title
+            size_hint: 1, .35
             text: "SETTINGS"
             font_size: 30
         GridLayout:
-            rows: 7
+            rows: 10
             cols: 1
             ButtonLabel:
                 id: board_size
@@ -25,23 +27,35 @@
                 text: "player 2 is a computer"
                 on_press: root.alter_player2()
             ButtonLabel:
+                id: difficulty
+                text: "computer difficulty is challenging"
+                on_press: root.alter_difficulty()
+            ButtonLabel:
                 id: sound
                 text: "sound enabled"
                 on_press: root.alter_sound()
             ButtonLabel:
                 id: speed
-                text: "computer move speed is fast"
+                text: "move animation speed is fast"
                 on_press: root.alter_speed()
+            ButtonLabel:
+                id: grid
+                text: "grid is enabled"
+                on_press: root.alter_grid()
+            ButtonLabel:
+                id: font
+                text: "using brendohand font"
+                on_press: root.alter_font()
             Label:
                 text: ""
 
 
 <ButtonLabel@ButtonBehavior+Label>:
-    font_name: "fonts/brendohand/Brendohand.otf"
+    font_name: "fonts/Brendohand.otf"
     font_size: 24
     color: .85, .85, .85, 1
 
 <TitleLabel@Label>:
-    font_name: "fonts/brendohand/Brendohand.otf"
+    font_name: "fonts/Brendohand.otf"
     font_size: 26
     color: 1, 0, 0, 1

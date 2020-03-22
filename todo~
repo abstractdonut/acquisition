@@ -14,3 +14,4 @@
 [ ] animate computer movement
 [ ] implement 'click' mode
 [ ] implement game persistance. Note that a new game should _not_ save on closing except after a move has been made.
+

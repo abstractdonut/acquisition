@@ -1,4 +1,5 @@
 import random
+from math import floor
 
 # Within the Board class, 'moves' is a list of dictionaries, where each 'move',
 # or dictionary, has the following elements:
@@ -24,7 +25,7 @@ class Board():
     # Maximum allowable minsize is capped by the highest number of
     # pieces in a single 'cylinder n[c].png'.
     def valid_size(self):
-        if min(self.size) >= 2 and min(self.size) <= 7:
+        if min(self.size) >= 3 and min(self.size) <= 7:
             return True
         else:
             return False
@@ -38,12 +39,24 @@ class Board():
                 piece_map[i].append(1)
         return piece_map
     
+    #end_states = ['player1 win', 'player2 win', 'stalemate']
+    def game_over(self):
+        if len(self.legal_moves()) == 0:
+            return True
+        else:
+            return False
+#        if self.get_state() in Board.end_states:
+#            return True
+#        else:
+#            return False
+    
     # init; player1; player2; player1 win; player2 win; stalemate
     def get_state(self):
         l = len(self.moves)
         if l == 0:
             return 'init'
-        elif self.four_move_rep():
+#        elif self.four_move_rep():
+        elif self.game_over():
             if self.score1 > self.score2:
                 return 'player1 win'
             elif self.score1 < self.score2:
@@ -108,6 +121,12 @@ class Board():
         self.piece_map[tpos[0]][tpos[1]] = tval
         return move
     
+    def copy(self):
+        newboard = Board()
+        for move in self.moves:
+            newboard.push(move)
+        return newboard
+    
     # Distance is defined as a list of possible distances.
     #   1. The distance between two squares that are not on the same horizontal
     #      or vertical level is not defined, and the function returns empty.
@@ -132,7 +151,8 @@ class Board():
         fpos = move['from pos']
         tpos = move['to pos']
         fval = self.piece_map[fpos[0]][fpos[1]]
-        if fval in self.distance(fpos, tpos):
+        tval = self.piece_map[tpos[0]][tpos[1]]
+        if fval in self.distance(fpos, tpos) and tval > 0:
             return True
         else:
             return False
@@ -156,22 +176,25 @@ class Board():
         return legal_moves
     
     # Produces the best move for the current player using minimax search.
-    def best_move(self, depth=1, breadth=25):
+    def best_move(self, callback, depth=1, breadth=16, handicap=0):
+        assert(type(breadth) == type(0))
+        print("Searching for best move with d=%d, b=%d, h=%d" % (depth, breadth, handicap))
+        sb = self.copy()    # search board, so that current state isn't altered
+        ib = breadth + handicap     # index used to obtain moves of size breadth
         self.minimax_count = 0
+        moves = self.legal_moves()
+        self.sort(moves)
+        moves = moves if len(moves) <= breadth else moves[:ib]
+        moves = self.purge(moves, hadnicap)
+        if len(moves) == 1:
+            return moves[0]
+        print("preparing to evaluate %d moves" % len(moves))
         if len(self.moves) % 2 == 0:
-            moves = self.legal_moves()
-            self.sort(moves)
-            moves = moves if len(moves) <= breadth else moves[:breadth]
-            print("preparing to evaluate %d moves" % len(moves))
-            scores = [self.minimax(move, depth, breadth, True) for move in moves]
-            return max(scores, key=lambda x: x[1])[0]
+            scores = [sb.minimax(move, depth, breadth, True) for move in moves]
+            callback(max(scores, key=lambda x: x[1])[0])
         else:
-            moves = self.legal_moves()
-            self.sort(moves)
-            moves = moves if len(moves) <= breadth else moves[:breadth]
-            print("preparing to evaluate %d moves" % len(moves))
-            scores = [self.minimax(move, depth, breadth, False) for move in moves]
-            return min(scores, key=lambda x: x[1])[0]
+            scores = [sb.minimax(move, depth, breadth, False) for move in moves]
+            callback(min(scores, key=lambda x: x[1])[0])
     
     # Evaluates the given move to produce a minimax score.
     def minimax(self, move, depth, breadth, max_player1):
@@ -201,6 +224,18 @@ class Board():
     def sort(self, moves):
         moves.sort(key=lambda move: move['from val'] + move['to val'])
         moves.reverse()
+    
+    # Remove n randomly selected elements of moves. 
+    def purge(self, moves, n):
+        max_n = floor(len(moves) / 3)
+        n = min(n, max_n)
+#        print("preparing to purge %d moves from" % n, moves)
+        selection = random.choices(moves, k=n)
+        for item in selection:
+            moves.remove(item)
+        return moves
+            
+        
 
 
 
