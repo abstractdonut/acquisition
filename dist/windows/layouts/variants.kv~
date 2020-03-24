@@ -1,0 +1,65 @@
+<VariantsScreen>:
+    GridLayout:
+        rows: 2
+        cols: 1
+        TitleLabel:
+            id: title
+            size_hint: 1, .35
+            text: "ACQUISITION VARIANTS"
+            font_size: 36
+        GridLayout:
+            rows: 12
+            cols: 1
+            ButtonLabel:
+                id: standard
+                text: "Standard Rules"
+                on_press: root.standard()
+            Description:
+                id: standard_desc
+                text: "Play according to the standard rules of the game"
+                on_press: root.standard()
+            Label:
+            ButtonLabel:
+                id: golf
+                text: "Golf"
+                on_press: root.golf()
+            Description:
+                id: golf_desc
+                text: "Player with the lowest score wins"
+                on_press: root.golf()
+            Label:
+            ButtonLabel:
+                id: diagonals
+                text: "Odd Diagonals"
+                on_press: root.diagonals()
+            Description:
+                id: diagonals_desc
+                text: "Move diagonally on odd turns."
+                on_press: root.diagonals()
+            Label:
+            ButtonLabel:
+                id: checkers
+                text: "Capture Like Checkers"
+                on_press: root.checkers()
+            Description:
+                id: checkers_desc
+                text: "Capture pieces by jumping over them"
+                on_press: root.checkers()
+            Label:
+                text: ""
+
+
+<ButtonLabel@ButtonBehavior+Label>:
+    font_name: "fonts/Brendohand.otf"
+    font_size: 24
+    color: .85, .85, .85, 1
+
+<Description@ButtonBehavior+Label>:
+    font_name: "fonts/Brendohand.otf"
+    font_size: 24
+    color: .45, .45, .45, 1
+
+<TitleLabel@Label>:
+    font_name: "fonts/Brendohand.otf"
+    font_size: 26
+    color: 1, 0, 0, 1

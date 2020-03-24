@@ -53,8 +53,23 @@
                     id: redo
                     on_release: root.redo()
 
-#<PieceLayout>:
-#    pass
+<ChipPiece>:
+    size_hint: None, None
+    Image:
+        id: background
+        size_hint: None, None
+        size: self.parent.size
+        pos: self.parent.pos
+    Image:
+        id: gray
+        size_hint: None, None
+        size: self.parent.size
+        pos: self.parent.pos
+    Image:
+        id: red
+        size_hint: None, None
+        size: self.parent.size
+        pos: self.parent.pos
 
 <Piece>:
     size_hint: None, None
@@ -71,11 +86,11 @@
 
 
 <CustomLabel@Label>:
-    font_name: "fonts/Brendohand.otf"
+    font_name: "fonts/CaviarDreams.ttf"
     font_size: 26
 
 <CustomButton@Button>:
-    font_name: "fonts/Brendohand.otf"
+    font_name: "fonts/CaviarDreams.ttf"
     font_size: 26
 
 

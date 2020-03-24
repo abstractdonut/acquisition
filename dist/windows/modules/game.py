@@ -1,23 +1,38 @@
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import Image
-from kivy.properties import ListProperty, OptionProperty, BooleanProperty
+from kivy.properties import (
+    ListProperty, OptionProperty, BooleanProperty, NumericProperty
+)
 from kivy.animation import Animation, AnimationTransition
 from kivy.core.window import Window
 from kivy.clock import Clock
+from kivy.cache import Cache
 
 import pygame
+import pickle
+import pprint
 
-from modules.board import Board
+from modules.board import (
+    Board, GolfVariant, CheckersVariant, CheckersVariant2, DiagonalVariant
+)
 
 import threading
+from functools import partial
 
 from math import floor
 from pprint import pprint
 
 class Game():
-    def __init__(self, size=(7, 7)):
-        self.board = Board(size)
+    variants = {
+        "standard": Board,
+        "golf":     GolfVariant,
+        "checkers": CheckersVariant2,
+        "diagonal": DiagonalVariant
+    }
+    def __init__(self, size=(7, 7), variant="standard"):
+        self.variant = variant
+        self.board = Game.variants[variant](size)
         self.line = []
         self.indx = -1      # no moves yet
     
@@ -41,6 +56,8 @@ class Game():
         return True
     
     def choose_move(self, callback, difficulty):
+        print("choosing move for computer")
+        print("note, current board size is %d, %d" % self.board.size)
         breadth = self.choose_breadth(difficulty)
         handicap = self.choose_handicap(difficulty)
         args = (callback, 1, breadth, handicap)
@@ -55,7 +72,7 @@ class Game():
             return 13
         elif difficulty == "challenging":
             return 16
-        elif difficulty == "infuriating":
+        elif difficulty == "formidable":
             return 21
         else:
             raise ValueError
@@ -92,12 +109,34 @@ class Game():
     
     def reset(self):
         if self.line:
-            self.board = Board()
+            self.board = self.board.__class__(self.board.size)
             self.line = []
             self.indx = -1
             return True
         else:
             return False
+    
+    def save_game(self):
+        print("preparing to save game")
+        if len(self.line) > 0:
+            path = "data/game-%s.p" % self.variant
+            data = (self.line, self.board.size)
+            with open(path, 'wb') as pfile:
+                pickle.dump(data, pfile)
+    
+    def load_game(self):
+        print("loading game with variant %s" % self.variant)
+        path = "data/game-%s.p" % self.variant
+        try:
+            with open(path, 'rb') as pfile:
+                self.line, size = pickle.load(pfile)
+                self.board = self.board.__class__(size)
+                for move in self.line:
+                    self.board.push(move)
+                self.indx = len(self.line) - 1
+            return True
+        except FileNotFoundError:
+            pass
 
 
 class GameScreen(Screen):
@@ -112,25 +151,29 @@ class GameScreen(Screen):
     player1 = OptionProperty("human", options=["human", "computer"])
     player2 = OptionProperty("computer", options=["human", "computer"])
     paused = BooleanProperty(False)
-#    gameover = BooleanProperty(False)
+    turns = NumericProperty(0)
     
     def __init__(self, **kwargs):
         super(GameScreen, self).__init__(**kwargs)
         Window.bind(size=self.on_window_size)
+        self.variant = "standard"
         self.game = Game()
+        self.mode = "drag"
         self.turns = 0
-#        self.gameover = False
         self.searching = False
         self.difficulty = "challening"
-        self.font = "fonts/Brendohand.otf"
+        self.font = "fonts/CaviarDreams.ttf"
         self.grid = "enabled"
         self.sound = "enabled"
+        self.speed = "fast"
         pygame.mixer.pre_init(22050, -16, 2, 2048) 
         pygame.mixer.init()
         self.move_sound1 = pygame.mixer.Sound("audio/move.wav")
         self.move_sound2 = pygame.mixer.Sound("audio/move.wav")
         self.capture_sound = pygame.mixer.Sound("audio/capture.wav")
+        self.active = False
         self.pending = None
+        self.redo_flag = False
         self.animations_complete = 0    # for debugging
         self.minimaxes_complete = 0     # also for debugging
         self.ids.piece_layout.populate(self.game.board)
@@ -138,27 +181,37 @@ class GameScreen(Screen):
         self.ids.piece_layout.bind(size=self.on_piece_layout_size)
         self.ids.status.text = GameScreen.status_verbose['init']
     
-#    def on_gameover(self, instance, value):
-#        print("gameover set to ", value)
-    
     def on_touch_up(self, touch):
-        if self.paused and self.ids.piece_layout.collide_point(*touch.pos):
-            print("game screen on_touch_up digested.")
+        collide = self.ids.piece_layout.collide_point(*touch.pos)
+        if collide:
             status = self.game.board.get_state()
             self.ids.status.text = GameScreen.status_verbose[status]
-            self.paused = False
-            return True
-        else:
+            if self.paused:
+                print("game screen on_touch_up digested.")
+                self.paused = False
+                return True
+        if not (collide and self.paused):
             print("game screen on_touch_up ignored")
             super(GameScreen, self).on_touch_up(touch)
             return False
     
+    def on_pre_enter(self):
+        self.active = True
+        print("received on_pre_enter")
+        Window.size = (Window.size[0] - 1, Window.size[1])
+        #Window.size = (Window.size[0] + 1, Window.size[1])
+    
     def on_enter(self):
+        print("received on_enter")
+        self.ids.piece_layout.update_dimensions()
         self.reload()
         if self.human_turn():
             self.start_turn(0)
         else:
             self.paused = True
+    
+    def on_leave(self):
+        self.active = False
     
     def on_paused(self, instance, paused):
         print("on_paused received value %r" % paused)
@@ -166,20 +219,16 @@ class GameScreen(Screen):
             self.ids.status.text = "Game Paused"
             self.ids.piece_layout.disable()
         else:
-#            status = self.game.board.get_state()
-#            self.ids.status.text = GameScreen.status_verbose[status]
             if not self.human_turn():
                 self.redo()
+                self.redo_flag = False
             self.start_turn(0)
     
     def start_turn(self, dt):
         if self.game.board.game_over():
             print("caught gameover from start_turn")
-#            self.gameover = True
         else:
-#            self.turns += 1
-#            if self.turns == 10:
-#                self.ids.piece_layout.reload() # prevent black textures glitch.
+            self.turns += 1
             print("")
             if self.human_turn():
                 print("New turn for human player.")
@@ -190,24 +239,25 @@ class GameScreen(Screen):
                 self.ids.piece_layout.disable()
                 self.choose_move(0)
     
+    def on_turns(self, instance, turns):
+        if turns % 15 == 0:
+            self.reload()
+    
     def human_turn(self):
         h1 = self.player1 == "human" and len(self.game.board.moves) % 2 == 0
         h2 = self.player2 == "human" and len(self.game.board.moves) % 2 == 1
         return h1 or h2
     
     def choose_move(self, dt):
-        if not self.paused:
+        if not self.paused and not self.game.board.game_over():
             print("choosing new move for the computer")
-            self.game.choose_move(self.minimax_callback, self.difficulty)
             self.searching = True
+            self.game.choose_move(self.minimax_callback, self.difficulty)
     
     def minimax_callback(self, move):
         if self.searching:
-            print("minimax callback reached %d times." % self.minimaxes_complete)
             self.minimaxes_complete += 1
-#            self.pending = move
-#            assert(not move is None)
-#            self.ids.piece_layout.animate_move(move, self.on_anim_complete)
+            print("minimax callback reached %d times." % self.minimaxes_complete)
             self.searching = False
             self.animate_move(move)
         else:
@@ -219,21 +269,31 @@ class GameScreen(Screen):
         self.ids.piece_layout.animate_move(move, self.on_anim_complete)
     
     def on_anim_complete(self, animation, widget):
-        print("on_anim_complete reached %d times." % self.animations_complete)
-        self.animations_complete += 1
-        self.game.make_move(self.pending['from pos'], self.pending['to pos'])
-        self.pending = None
-        self.update()
+        if self.active:
+            self.animations_complete += 1
+            print("on_anim_complete reached %d times." % self.animations_complete)
+            self.game.make_move(self.pending['from pos'], self.pending['to pos'])
+            self.pending = None
+            if self.redo_flag:
+                self.update(True, False)
+                self.redo_flag = False
+            else:
+                self.update()
     
     def on_move_indicator(self, instance, value):
-        if len(value) == 4:
+        if len(value) == 4 and not self.game.board.game_over():
             print("received", value, "from move indicator")
             frompos = tuple(value[:2])
             topos   = tuple(value[2:])
-            if self.game.make_move(frompos, topos):
-                self.update()
+            if self.mode == "drag":
+                if self.game.make_move(frompos, topos):
+                    self.update()
+            elif self.mode == "click":
+                move = {'from pos': frompos, 'to pos': topos}
+                if self.game.board.is_legal(move):
+                    self.animate_move(move)
             else:
-                print("self.game.make_move returned False.")
+                raise ValueError
     
     def on_window_size(self, window, size):
         self.update_controls()
@@ -264,9 +324,9 @@ class GameScreen(Screen):
     
     def redo(self, dt=0):
         if self.ids.piece_layout.animating:
-            print("rescheduling redo")
-            self.ids.piece_layout.abort_animation()
-            Clock.schedule_once(self.redo, 0.05)
+            print("rescheduling redo")              # is this necessary now that the same
+            self.ids.piece_layout.abort_animation() # sort of check has been implemented within
+            Clock.schedule_once(self.redo, 0.05)    # piece_layout?
             return
         print("committing to redo")
         self.searching = False
@@ -275,7 +335,7 @@ class GameScreen(Screen):
         if not move is None:
             self.paused = True
             self.animate_move(self.game.next_move())
-            self.update(True, False)
+            self.redo_flag = True
             self.paused = True
     
     def reset(self, dt=0):
@@ -307,18 +367,32 @@ class GameScreen(Screen):
         self.ids.reset.font_name = font
         self.ids._reload.font_name = font
     
+    def set_game_variant(self, variant):
+        print("setting game variant")
+        if self.variant != variant:
+            self.variant = variant
+            self.game = Game(self.game.board.size, variant)
+            self.ids.piece_layout.populate(self.game.board)
+            self.ids.status.text = GameScreen.status_verbose['init']
+    
     def set_game_size(self, size):
+        print("setting game size")
         self.game = Game(size)
         self.ids.piece_layout.populate(self.game.board)
         self.ids.status.text = GameScreen.status_verbose['init']
     
+    def load_game(self):
+        self.game.load_game()
+        self.ids.piece_layout.populate(self.game.board)
+        self.update(False)
+    
+    def save_game(self):
+        self.game.save_game()
+    
     # Should only be called whenever the game state is altered, that is
     # when either player makes a move, or when undo/reset/redo is triggered.
     def update(self, ismove=True, upd_status=True):
-#        if self.game.board.game_over():
-#            self.gameover = True
-#        else:
-#            self.gameover = False
+        print("update received upd_status", upd_status)
         if upd_status:
             status = self.game.board.get_state()
             self.ids.status.text = GameScreen.status_verbose[status]
@@ -335,31 +409,40 @@ class GameScreen(Screen):
         self.start_turn(0)
     
     def import_settings(self, settings):
+        print("game importing the following settings:")
+        pprint(settings)
         self.player1    = settings['player1']
         self.player2    = settings['player2']
+        self.mode       = settings['mode']
         self.difficulty = settings['difficulty']
         self.sound      = settings['sound']
         self.grid       = settings['grid']
+        self.speed      = settings['speed']
+        self.ids.piece_layout.set_mode(self.mode)
         self.ids.piece_layout.set_grid(self.grid)
+        self.ids.piece_layout.set_speed(self.speed)
         size_x, size_y = self.game.board.size
         new_x = settings['size_x']
         new_y = settings['size_y']
         if new_x != size_x or new_y != size_y:
             self.set_game_size((new_x, new_y))
+        setvar = lambda dt: self.set_game_variant(settings['variant'])
+        Clock.schedule_once(setvar, 0.25)
     
     # This way settings altered during gameplay will persist.
     def export_settings(self):
         return {
             'size_x':       self.game.board.size[0],
             'size_y':       self.game.board.size[1],
-            'mode':         "drag",
+            'mode':         self.mode,
             'player1':      self.player1,
             'player2':      self.player2,
             'difficulty':   self.difficulty,
             'sound':        self.sound,
-            'speed':        "fast",
+            'speed':        self.speed,
             'grid':         self.grid,
-            'font':         self.ids.status.font_name   # arbitrary choice
+            'font':         self.ids.status.font_name,   # arbitrary choice
+            'variant':      self.variant
         }
 
 
@@ -370,11 +453,14 @@ class PieceLayout(FloatLayout):
         super(PieceLayout, self).__init__(**kwargs)
         Window.bind(mouse_pos=self.on_mouse_pos)
         Window.bind(size=self.on_window_size)
+        self.mode = "drag"
+        self.speed = "fast"
         self.animating = False
         self.anim_from = None
         self.anim_to = None
         self.animation = None
         self.populated = False
+        self.populating = False
         self.enabled = False
         self.move_indicator = []
         self.selected = None
@@ -382,7 +468,16 @@ class PieceLayout(FloatLayout):
         self.X = None
         self.Y = None
     
+    speed_map = {
+        'immediate': 0,
+        'fast': 0.12,
+        'slow': 0.3
+    }
     def animate_move(self, move, stop_callback):
+        if self.abort_animation():  # concurrent animations will cause a crash
+            restart_animation = lambda dt: self.animate_move(move, stop_callback)
+            Clock.schedule_once(restart_animation, .1)
+            return
         self.animating = True
         print("starting piece animation")
         self.anim_from = move['from pos']
@@ -394,19 +489,15 @@ class PieceLayout(FloatLayout):
         self.piece_map[x][y].set_value(0)
         tox, toy = self.coords_to_pos(self.anim_to)
         trans = AnimationTransition.in_out_circ
-        self.animation = Animation(x=tox, y=toy, duration=0.1, transition=trans)
+        speed = PieceLayout.speed_map[self.speed]
+        self.animation = Animation(x=tox, y=toy, duration=speed, transition=trans)
         self.animation.bind(on_complete=self.on_anim_stop)
         self.animation.bind(on_complete=stop_callback)
         self.animation.start(self.moving)
     
-    def set_grid(self, grid):
-        for col in self.piece_map:
-            for piece in col:
-                piece.set_grid(grid)
-        self.moving.set_grid(grid)
-    
     def abort_animation(self):
         if self.animating:
+            print("animation interrupted")
             self.animation.stop(self.moving)
             return True
         return False
@@ -430,6 +521,22 @@ class PieceLayout(FloatLayout):
     def disable(self):
         self.enabled = False
     
+    def set_mode(self, mode):
+        self.unselect()
+        self.mode = mode
+    
+    def set_grid(self, grid):
+        for col in self.piece_map:
+            for piece in col:
+                piece.set_grid(grid)
+        self.moving.set_grid(grid)
+    
+    def set_speed(self, speed):
+        if speed in PieceLayout.speed_map.keys():
+            self.speed = speed
+        else:
+            raise ValueError
+    
     def on_move_indicator(self, instance, value):
         Clock.schedule_once(self.reset_indicator, 0.1)
     
@@ -437,15 +544,17 @@ class PieceLayout(FloatLayout):
         self.move_indicator = []
     
     def on_touch_down(self, touch):
-        if self.enabled:
+        if self.selected is None and self.enabled:
+            print("piece layout on_touch_down processed")
             self.selected = self.pos_to_coords(touch.pos)
             x, y = self.selected
             if x >= self.board.size[0] or y >= self.board.size[1]:
                 self.selected = None
                 return
             self.update_offset(touch.pos)
-            self.piece_map[x][y].set_value(0)
-            self.moving.set_value(self.board.piece_map[x][y])
+            if self.mode == "drag":
+                self.piece_map[x][y].set_value(0)
+                self.moving.set_value(self.board.piece_map[x][y])
             state = self.board.get_state()
             if state == 'player1' or state == 'init':
                 self.piece_map[x][y].set_state('player1')
@@ -454,29 +563,47 @@ class PieceLayout(FloatLayout):
             else:
                 self.selected = None
                 self.offset = None
+        elif (not self.selected is None) and (not self.offset is None) and \
+           self.enabled and self.mode == "click":
+            dest = self.pos_to_coords(touch.pos)
+            if self.valid_coords(self.selected) and self.valid_coords(dest):
+                self.move_indicator = [*self.selected, *dest]
+            self.unselect()
+        else:
+            print("piece layout on_touch_down rejected")
     
     def on_touch_up(self, touch):
         print("piece layout on_touch_up received.")
-        if (not self.selected is None) and (not self.offset is None) and self.enabled:
+        if (not self.selected is None) and (not self.offset is None) and \
+           self.enabled and self.mode == "drag":
             dest = self.pos_to_coords(touch.pos)
-            self.move_indicator = [*self.selected, *dest]
+            if self.valid_coords(self.selected) and self.valid_coords(dest):
+                self.move_indicator = [*self.selected, *dest]
+            self.unselect()
+    
+    def on_mouse_pos(self, mouse, pos):
+        if (not self.selected is None) and (not self.offset is None) and \
+           self.enabled and self.mode == "drag":
+            px = pos[0] + self.offset[0]
+            py = pos[1] + self.offset[1]
+            self.moving.pos = (px, py)
+        elif not self.animating and self.mode == "drag":
+            self.update_offset(pos)
+            px = pos[0] + self.offset[0]
+            py = pos[1] + self.offset[1]
+            self.moving.pos = (px, py)
+    
+    def select(self, touch):
+        pass
+    
+    def unselect(self):
+        if self.selected:
             x, y = self.selected
             self.moving.set_value(0)
             self.piece_map[x][y].set_value(self.board.piece_map[x][y])
             self.piece_map[x][y].set_state('unselected')
             self.selected = None
             self.offset = None
-    
-    def on_mouse_pos(self, mouse, pos):
-        if (not self.selected is None) and (not self.offset is None) and self.enabled:
-            px = pos[0] + self.offset[0]
-            py = pos[1] + self.offset[1]
-            self.moving.pos = (px, py)
-        elif not self.animating:
-            self.update_offset(pos)
-            px = pos[0] + self.offset[0]
-            py = pos[1] + self.offset[1]
-            self.moving.pos = (px, py)
     
     def update_offset(self, pos):
         coords = self.pos_to_coords(pos)
@@ -508,6 +635,11 @@ class PieceLayout(FloatLayout):
                 self.height = h_from_w
             self.x = (max_width - self.width) / 2
             self.y = max_height * 0.1
+        else:
+            print("rejecting update dimensions")
+    
+    def valid_coords(self, coords):
+        return coords[0] < self.X and coords[1] < self.Y
     
     def coords_to_pos(self, coords):
         piece_w = self.width / self.X
@@ -526,15 +658,30 @@ class PieceLayout(FloatLayout):
     # An instance of this class must be populated before any of its methods or
     # variables are accessed.
     def populate(self, board):
+        print("preparing to populate PieceLayout")
+        if self.populating:
+            print("prevented collision in PieceLayout.populate")
+            retry = lambda dt: self.populate(board)
+            Clock.schedule_once(retry, .2)
+            return
+        self.populating = True
         if not isinstance(board, Board):
             raise ValueError
-        for child in self.children:
-            self.remove_widget(child)
+        self.clear_widgets()
         self.moving = None
         self.board = board
-        self.piece_map = []
-        self.X = board.size[0]  # for quick access
+        self.X = board.size[0]
         self.Y = board.size[1]
+        if max(board.size) <= 7:
+            self.populate_pieces(board)
+        else:
+            self.populate_chips(board)
+        self.update_dimensions()
+        self.populated = True
+        self.populating = False
+    
+    def populate_pieces(self, board):
+        self.piece_map = []
         for x in range(self.X):
             self.piece_map.append([])
             for y in range(self.Y):
@@ -548,8 +695,22 @@ class PieceLayout(FloatLayout):
         self.moving.set_value(0)
         self.moving.set_state("transparent")
         self.add_widget(self.moving)
-        self.update_dimensions()
-        self.populated = True
+    
+    def populate_chips(self, board):
+        self.piece_map = []
+        for x in range(self.X):
+            self.piece_map.append([])
+            for y in range(self.Y):
+                value = board.piece_map[x][y]
+                piece = ChipPiece()
+                piece._init(board.size, (x, y))
+                self.piece_map[x].append(piece)
+                self.add_widget(piece)
+        self.moving = ChipPiece()
+        self.moving._init(board.size, (0, 0))
+        self.moving.set_value(0)
+        self.moving.set_state("transparent")
+        self.add_widget(self.moving)
     
     # update must be called by the parent whenever the board state changes in
     # order for the changes to be reflected in the UI.
@@ -565,6 +726,130 @@ class PieceLayout(FloatLayout):
                 piece.reload()
         self.moving.reload()
 
+class ChipPiece(FloatLayout):
+    gray = {
+        0: "images/chips/poker 0.png",
+        1: "images/chips/poker 1-1.png",
+        2: "images/chips/poker 1-2.png",
+        3: "images/chips/poker 1-3.png",
+        4: "images/chips/poker 1-4.png",
+        5: "images/chips/poker 1-5.png",
+        6: "images/chips/poker 1-6.png"
+    }
+    gray_front = {
+        0: "images/chips/poker 0.png",
+        1: "images/chips/poker 1-1-f.png",
+        2: "images/chips/poker 1-2-f.png",
+        3: "images/chips/poker 1-3-f.png",
+        4: "images/chips/poker 1-4-f.png",
+        5: "images/chips/poker 1-5-f.png",
+        6: "images/chips/poker 1-6-f.png"
+    }
+    gray_back = {
+        0: "images/chips/poker 0.png",
+        1: "images/chips/poker 1-1-b.png",
+        2: "images/chips/poker 1-2-b.png",
+        3: "images/chips/poker 1-3-b.png",
+        4: "images/chips/poker 1-4-b.png",
+        5: "images/chips/poker 1-5-b.png",
+        6: "images/chips/poker 1-6-b.png"
+    }
+    red = {
+        0: "images/chips/poker 0.png",
+        1: "images/chips/poker 5-1.png",
+        2: "images/chips/poker 5-2.png",
+        3: "images/chips/poker 5-3.png",
+        4: "images/chips/poker 5-4.png",
+        5: "images/chips/poker 5-5.png",
+        6: "images/chips/poker 5-6.png"
+    }
+    red_front = {
+        0: "images/chips/poker 0.png",
+        1: "images/chips/poker 5-1-f.png",
+        2: "images/chips/poker 5-2-f.png",
+        3: "images/chips/poker 5-3-f.png",
+        4: "images/chips/poker 5-4-f.png",
+        5: "images/chips/poker 5-5-f.png",
+        6: "images/chips/poker 5-6-f.png"
+    }
+    red_back = {
+        0: "images/chips/poker 0.png",
+        1: "images/chips/poker 5-1-b.png",
+        2: "images/chips/poker 5-2-b.png",
+        3: "images/chips/poker 5-3-b.png",
+        4: "images/chips/poker 5-4-b.png",
+        5: "images/chips/poker 5-5-b.png",
+        6: "images/chips/poker 5-6-b.png"
+    }
+    background = {
+        'transparent':  "images/tiles/square_transparent.png",
+        'unselected':   "images/tiles/square_empty.png",
+        'grid':         "images/tiles/square_grid.png",
+        'player1':      "images/tiles/square_red.png",
+        'player2':      "images/tiles/square_blue.png"
+    }
+    
+    def __init__(self, **kwargs):
+        super(ChipPiece, self).__init__(**kwargs)
+        self.coords = None
+        self.grid = 'enabled'
+        self.set_value(1)
+        self.state = 'unselected'
+        self.set_state(self.state)
+    
+    def _init(self, size, coords):
+        self.X = size[0]
+        self.Y = size[1]
+        self.coords = coords
+    
+    def on_parent(self, instance, parent):
+        if not parent is None:
+            parent.bind(size=self.update_dimensions)
+            parent.bind(pos=self.update_dimensions)
+    
+    def update_dimensions(self, _instance, _value):
+        if not self.coords is None and not self.size is None and not self.parent is None:
+            self.width = self.parent.width / self.X
+            self.height = self.parent.height / self.Y
+            self.x = self.parent.x + self.coords[0] * self.width
+            self.y = self.parent.y + self.coords[1] * self.height
+    
+    def reload(self):
+        self.ids.gray.reload()
+        self.ids.red.reload()
+        self.ids.background.reload()
+    
+    def set_grid(self, grid):
+        self.grid = grid
+        self.set_state(self.state)
+    
+    def set_value(self, value):
+        if not self.is_value(value):
+            raise ValueError
+        gval = value % 5
+        rval = int(value / 5)
+        if rval == 0 or gval == 0:
+            self.ids.gray.source = ChipPiece.gray[gval]
+            self.ids.red.source = ChipPiece.red[rval]
+        else:
+            self.ids.gray.source = ChipPiece.gray_back[gval]
+            self.ids.red.source = ChipPiece.red_front[rval]
+    
+    def is_value(self, value):
+        c1 = 0 <= value <= 42
+        c2 = type(value) == type(0)
+        return c1 and c2
+    
+    # Set the state of the piece to "unselected", "player1", or "player2".
+    def set_state(self, state):
+        if state not in ChipPiece.background.keys():
+            raise ValueError
+        self.state = state
+        if state == 'unselected' and self.grid == "enabled":
+            self.ids.background.source = ChipPiece.background['grid']
+        else:
+            self.ids.background.source = ChipPiece.background[state]
+    
 
 class Piece(FloatLayout):
     f_srcs = {
@@ -587,7 +872,7 @@ class Piece(FloatLayout):
     def __init__(self, **kwargs):
         super(Piece, self).__init__(**kwargs)
         self.coords = None
-        self.grid = "enabled"
+        self.grid = 'enabled'
         self.set_value(1)
         self.state = 'unselected'
         self.set_state(self.state)
@@ -602,17 +887,17 @@ class Piece(FloatLayout):
             parent.bind(size=self.update_dimensions)
             parent.bind(pos=self.update_dimensions)
     
-    def reload(self):
-        print("Piece received reload call")
-        self.ids.foreground.reload()
-        self.ids.background.reload()
-    
     def update_dimensions(self, _instance, _value):
         if not self.coords is None and not self.size is None and not self.parent is None:
             self.width = self.parent.width / self.X
             self.height = self.parent.height / self.Y
             self.x = self.parent.x + self.coords[0] * self.width
             self.y = self.parent.y + self.coords[1] * self.height
+    
+    def reload(self):
+        print("Piece received reload call")
+        self.ids.foreground.reload()
+        self.ids.background.reload()
     
     def set_grid(self, grid):
         self.grid = grid
