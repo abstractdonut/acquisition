@@ -50,10 +50,26 @@
                     on_release: root.reload()
                 CustomButton:
                     text: "Redo"
+                    id: redo
                     on_release: root.redo()
 
-#<PieceLayout>:
-#    pass
+<ChipPiece>:
+    size_hint: None, None
+    Image:
+        id: background
+        size_hint: None, None
+        size: self.parent.size
+        pos: self.parent.pos
+    Image:
+        id: gray
+        size_hint: None, None
+        size: self.parent.size
+        pos: self.parent.pos
+    Image:
+        id: red
+        size_hint: None, None
+        size: self.parent.size
+        pos: self.parent.pos
 
 <Piece>:
     size_hint: None, None

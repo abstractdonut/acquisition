@@ -8,7 +8,7 @@
             text: "SETTINGS"
             font_size: 30
         GridLayout:
-            rows: 10
+            rows: 9
             cols: 1
             ButtonLabel:
                 id: board_size
@@ -42,20 +42,22 @@
                 id: grid
                 text: "grid is enabled"
                 on_press: root.alter_grid()
-            ButtonLabel:
-                id: font
-                text: "using brendohand font"
-                on_press: root.alter_font()
+#            ButtonLabel:
+#                id: font
+#                text: "using Brendohand font"
+#                on_press: root.alter_font()
             Label:
                 text: ""
 
 
 <ButtonLabel@ButtonBehavior+Label>:
-    font_name: "fonts/Brendohand.otf"
+    font_name: "fonts/CaviarDreams.ttf"
     font_size: 24
     color: .85, .85, .85, 1
+    markup: True
 
 <TitleLabel@Label>:
     font_name: "fonts/Brendohand.otf"
     font_size: 26
+    markup: True
     color: 1, 0, 0, 1

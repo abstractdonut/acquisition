@@ -1,17 +1,30 @@
 
-[ ] when the pieces start disappearing midway through the game, the board looks kind of 'naked'. 
+[X] when the pieces start disappearing midway through the game, the board looks kind of 'naked'. 
     there should be a setting to enable/disable 'grid', which is a small gray border around each square tile.
 [X] obviously the game navigation buttons (undo, redo, reset) have not been debugged and properly implemented.
 [ ] consider some better color themes- one option is white background and black color for status text
-[ ] increase the font of text automatically to fit the size of the label
+[ ] increase the font size of text automatically to fit the size of the label.
 [X] create a global width to which the width of all UI elements (except piece_layout) are bound, and which is bound to the width of the piece_layout.
-[ ] add a rule to end the game when a threshold of nonstacking moves is reached.
-[ ] add a rule to detect when a new scoring condition cannot be reached from a given board state, and to terminate the game in this case.
-[ ] and a UI element to keep track of the nonstacking move count as well as the repetition move count.
-[X] add a stacking sound effect and a setting to disable/enable the sound effect (with a corresponding enable/disable sound widget in the game UI)
+[-] add a rule to end the game when a threshold of nonstacking moves is reached.
+[-] add a rule to detect when a new scoring condition cannot be reached from a given board state, and to terminate the game in this case.
+[-] and a UI element to keep track of the nonstacking move count as well as the repetition move count.
+[X] add a stacking sound effect and a setting to disable/enable the sound effect (with a corresponding enable/disable sound widget in the game UI).
 [X] add a simple minimax search to evaluate moves so that one or both players can be replaced by a computer.
-[ ] consider adding new types of cylinders with color coded values (white/grey - 1; red - 5)
-[X] animate computer movement
-[ ] implement 'click' mode
-[ ] implement game persistance. Note that a new game should _not_ save on closing except after a move has been made.
-
+[X] consider adding new types of cylinders with color coded values (white/grey - 1; red - 5).
+[X] animate computer movement.
+[X] implement 'click' mode.
+[X] implement game persistance. Note that a new game should _not_ save on closing except after a move has been made.
+[X] modify the names of the highest difficulty rating to be 'formidable' instead of 'infuriating'.
+[ ] integrate David's undo, redo, and new game icons.
+[ ] incorporate threading into the reload process so that reloading images doesn't cause the app to hang.
+[X] make multi-colored settings labels to allow the words with the most information stick out.
+[X] implement game variations!
+[X] BUG - moving a cylinder off the piece_map can cause the app to crash with an IndexError.
+[X] implement variant persistance.
+[X] BUG - computer continues making its own moves even when exiting the game screen.
+    This is especially apparent when placing computer vs. computer.
+[ ] A nice feature to have would be an animated repeat of the most recent move upon entering the game screen.
+[X] selecting a piece, exiting before completing the move, and changing mode to "drag" causes a crash.
+[ ] remove the font setting and set the font of all labels and buttons to CaviarDreams
+[ ] implement an option to show available moves on piece selection
+[ ] currently the game autosaves on exit. consider implementing autosave on variant change as well

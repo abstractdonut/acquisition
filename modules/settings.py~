@@ -5,18 +5,26 @@ BoundedNumericProperty, OptionProperty, StringProperty
 
 import os
 import pickle
+from pprint import pprint
 
 class SettingsScreen(Screen):
-    size_x = BoundedNumericProperty(7, min=3, max=7)
-    size_y = BoundedNumericProperty(7, min=3, max=7)
+    size_x = BoundedNumericProperty(7, min=3, max=42)
+    size_y = BoundedNumericProperty(7, min=3, max=42)
     mode = OptionProperty("drag", options=["drag", "click"])
     player1 = OptionProperty("human", options=["human", "computer"])
     player2 = OptionProperty("human", options=["human", "computer"])
-    difficulty = OptionProperty("challenging", options=["easy", "challenging", "infuriating"])
+    difficulty = OptionProperty("challenging", options=["easy", "challenging", "formidable"])
     sound = OptionProperty("enabled", options=["enabled", "disabled"])
     speed = OptionProperty("fast", options=["immediate", "fast", "slow"])
     grid = OptionProperty("enabled", options=["enabled", "disabled"])
-    font = StringProperty("fonts/brendohand.otf")
+    font = StringProperty("fonts/CaviarDreams.ttf")
+    
+    def __init__(self, **kwargs):
+        super(SettingsScreen, self).__init__(**kwargs)
+        self.variant = "standard"
+        self.gold = "d4af37"
+        self.silver = "b0c4de"
+        self.rust = "b7410e"
     
     def retrieve_fonts(self):
         filenames = os.listdir('fonts/')
@@ -33,57 +41,81 @@ class SettingsScreen(Screen):
         self.ids.sound.font_name = font
         self.ids.speed.font_name = font
         self.ids.grid.font_name = font
-        self.ids.font.font_name = font
+#        self.ids.font.font_name = font
     
+    def set_variant(self, variant):
+        self.variant = variant
+    
+#    def alter_board_size(self):
+#        sx_prop = self.property('size_x')
+#        sy_prop = self.property('size_y')
+#        if self.size_x == sx_prop.get_min(self) or self.size_y == sy_prop.get_min(self):
+#            self.size_x = self.property('size_x').get_max(self)
+#            self.size_y = self.property('size_y').get_max(self)
+#        else:
+#            self.size_x -= 1
+#            self.size_y -= 1
+#        self.ids.board_size.text = "board size is %d, %d" % (self.size_x, self.size_y)
+
     def alter_board_size(self):
-        sx_prop = self.property('size_x')
-        sy_prop = self.property('size_y')
-        if self.size_x == sx_prop.get_min(self) or self.size_y == sy_prop.get_min(self):
-            self.size_x = self.property('size_x').get_max(self)
-            self.size_y = self.property('size_y').get_max(self)
+        if self.size_x == 5:
+            self.size_x = 7
+            self.size_y = 7
+        elif self.size_x == 7:
+            self.size_x = 9
+            self.size_y = 9
+        elif self.size_x == 9:
+            self.size_x = 11
+            self.size_y = 11
         else:
-            self.size_x -= 1
-            self.size_y -= 1
-        self.ids.board_size.text = "board size is %d, %d" % (self.size_x, self.size_y)
+            self.size_x = 5
+            self.size_y = 5
+        #self.ids.board_size.text = "board size is %d, %d" % (self.size_x, self.size_y)
+        self.update_text()
     
     def alter_mode(self):
         if self.mode == "drag":
             self.mode = "click"
         else:
             self.mode = "drag"
-        self.ids.mode.text = "mode set to " + self.mode
+#        self.ids.mode.text = "mode set to " + self.mode
+        self.update_text()
     
     def alter_player1(self):
         if self.player1 == "human":
             self.player1 = "computer"
-            self.ids.player1.text = "player 1 is a computer"
+            #self.ids.player1.text = "player 1 is a [color=%s]computer[/color]" % (self.rust)
         else:
             self.player1 = "human"
-            self.ids.player1.text = "player 1 is human"
+            #self.ids.player1.text = "player 1 is [color=%s]human[/color]" % (self.gold)
+        self.update_text()
     
     def alter_player2(self):
         if self.player2 == "human":
             self.player2 = "computer"
-            self.ids.player2.text = "player 2 is a computer"
+#            self.ids.player2.text = "player 2 is a [color=%s]computer[/color]" % (self.rust)
         else:
             self.player2 = "human"
-            self.ids.player2.text = "player 2 is human"
+#            self.ids.player2.text = "player 2 is [color=%s]human[/color]" % (self.gold)
+        self.update_text()
     
     def alter_difficulty(self):
         if self.difficulty == "easy":
             self.difficulty = "challenging"
         elif self.difficulty == "challenging":
-            self.difficulty = "infuriating"
+            self.difficulty = "formidable"
         else:
             self.difficulty = "easy"
-        self.ids.difficulty.text = "computer difficulty is " + self.difficulty
+#        self.ids.difficulty.text = "computer difficulty is " + self.difficulty
+        self.update_text()
     
     def alter_sound(self):
         if self.sound == "enabled":
             self.sound = "disabled"
         else:
             self.sound = "enabled"
-        self.ids.sound.text = "sound is " + self.sound
+#        self.ids.sound.text = "sound is " + self.sound
+        self.update_text()
     
     def alter_speed(self):
         if self.speed == "fast":
@@ -92,14 +124,16 @@ class SettingsScreen(Screen):
             self.speed = "immediate"
         else:
             self.speed = "fast"
-        self.ids.speed.text = "move animation speed is " + self.speed
+#        self.ids.speed.text = "move animation speed is " + self.speed
+        self.update_text()
     
     def alter_grid(self):
         if self.grid == "enabled":
             self.grid = "disabled"
         else:
             self.grid = "enabled"
-        self.ids.grid.text = "grid is " + self.grid
+#        self.ids.grid.text = "grid is " + self.grid
+        self.update_text()
     
     def alter_font(self):
         fonts = self.retrieve_fonts()
@@ -112,26 +146,51 @@ class SettingsScreen(Screen):
             print("selected %s from fonts" % self.font)
         except ValueError:
             print("alter_font received ValueError")
-            self.font = "fonts/brendohand.otf"
-        self.ids.font.text = "using %s font" % self.font.split('/')[1].split('.')[0]
+            self.font = "fonts/Brendohand.otf"
+        #self.ids.font.text = "using %s font" % self.font.split('/')[1].split('.')[0]
+        self.update_text()
     
     # TODO this has not been modified to include recent settings additions
     def update_text(self):
-        self.ids.board_size.text = "board size is %d, %d" % (self.size_x, self.size_y)
-        self.ids.mode.text = "mode set to " + self.mode
+        self.ids.board_size.text = "board size is [color=%s]%d, %d[/color]" % \
+                                   (self.gold, self.size_x, self.size_y)
+        self.ids.mode.text = "mode set to [color=%s]%s[/color]" % \
+                             (self._color(self.mode), self.mode)
         if self.player1 == "human":
-            self.ids.player1.text = "player 1 is human"
+            self.ids.player1.text = "player 1 is [color=%s]human[/color]" % self.gold
         else:
-            self.ids.player1.text = "player 1 is a computer"
+            self.ids.player1.text = "player 1 is a [color=%s]computer[/color]" % self.rust
         if self.player2 == "human":
-            self.ids.player2.text = "player 2 is human"
+            self.ids.player2.text = "player 2 is [color=%s]human[/color]" % self.gold
         else:
-            self.ids.player2.text = "player 2 is a computer"
-        self.ids.difficulty.text = "computer difficulty is " + self.difficulty
-        self.ids.sound.text = "sound is " + self.sound
-        self.ids.speed.text = "move animation speed is " + self.speed
-        self.ids.grid.text = "grid is " + self.grid
-        self.ids.font.text = "using %s font" % self.font.split('/')[1].split('.')[0]
+            self.ids.player2.text = "player 2 is a [color=%s]computer[/color]" % self.rust
+        self.ids.difficulty.text = "computer difficulty is [color=%s]%s[/color]" % \
+                                   (self._color(self.difficulty), self.difficulty)
+        self.ids.sound.text = "sound is [color=%s]%s[/color]" % \
+                              (self._color(self.sound), self.sound)
+        self.ids.speed.text = "move animation speed is [color=%s]%s[/color]" % \
+                              (self._color(self.speed), self.speed)
+        self.ids.grid.text = "grid is [color=%s]%s[/color]" % \
+                             (self._color(self.grid), self.grid)
+#        self.ids.font.text = "using [color=%s]%s[/color] font" % \
+#                             (self.gold, self.font.split('/')[1].split('.')[0])
+    
+    def _color(self, string):
+        colordict = {
+            "easy": self.silver,
+            "challenging": self.gold,
+            "formidable": self.rust,
+            "human": self.gold,
+            "computer": self.rust,
+            "enabled": self.gold,
+            "disabled": self.rust,
+            "drag": self.gold,
+            "click": self.rust,
+            "fast": self.gold,
+            "slow": self.rust,
+            "immediate": self.silver
+        }
+        return colordict[string]
     
     def export_settings(self):
         return {
@@ -144,7 +203,8 @@ class SettingsScreen(Screen):
             "sound":        self.sound,
             "speed":        self.speed,
             "grid":         self.grid,
-            "font":         self.font
+            "font":         self.font,
+            "variant":      self.variant
         }
     
     def import_settings(self, settings):
@@ -159,11 +219,14 @@ class SettingsScreen(Screen):
         self.speed      = settings['speed']
         self.grid       = settings['grid']
         self.font       = settings['font']
+        self.variant    = settings['variant']
         self.update_text()
     
     def save_settings(self):
         path = "data/settings.p"
         data = self.export_settings()
+        print("saving the following settings")
+        pprint(data)
         with open(path, 'wb') as pfile:
             pickle.dump(data, pfile)
     
