@@ -22,8 +22,8 @@ class VariantsScreen(Screen):
         self.ids.golf_desc.font_name = font
         self.ids.diagonals.font_name = font
         self.ids.diagonals_desc.font_name = font
-        self.ids.checkers.font_name = font
-        self.ids.checkers_desc.font_name = font
+#        self.ids.checkers.font_name = font
+#        self.ids.checkers_desc.font_name = font
     
     def standard(self):
         self.variant = "standard"

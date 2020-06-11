@@ -162,7 +162,7 @@ class GameScreen(Screen):
         self.turns = 0
         self.searching = False
         self.difficulty = "challening"
-        self.font = "fonts/Brendohand.otf"
+        self.font = "fonts/CaviarDreams.ttf"
         self.grid = "enabled"
         self.sound = "enabled"
         self.speed = "fast"
@@ -200,9 +200,19 @@ class GameScreen(Screen):
         print("received on_pre_enter")
         Window.size = (Window.size[0] - 1, Window.size[1])
         #Window.size = (Window.size[0] + 1, Window.size[1])
+        if self.sound == "enabled":
+            self.ids.toggle_sound.source = "images/icons/volume_black.png"
+        else:
+            self.ids.toggle_sound.source = "images/icons/volume_gray.png"
+        if self.grid == "enabled":
+            self.ids.toggle_grid.source = "images/icons/grid_black.png"
+        else:
+            self.ids.toggle_grid.source = "images/icons/grid_gray.png"
     
     def on_enter(self):
         print("received on_enter")
+        print("game screen, self.parent is", self.parent)
+        self.parent.backscr = "game"
         self.ids.piece_layout.update_dimensions()
         self.reload()
         if self.human_turn():
@@ -354,6 +364,31 @@ class GameScreen(Screen):
         self.ids.piece_layout.board = self.game.board
         self.update(False)
     
+    def toggle_sound(self):
+        if self.sound == "enabled":
+            self.sound = "disabled"
+            self.ids.toggle_sound.source = "images/icons/volume_gray.png"
+        else:
+            self.sound = "enabled"
+            self.ids.toggle_sound.source = "images/icons/volume_black.png"
+    
+    def toggle_grid(self):
+        if self.grid == "enabled":
+            self.grid = "disabled"
+            self.ids.toggle_grid.source = "images/icons/grid_gray.png"
+        else:
+            self.grid = "enabled"
+            self.ids.toggle_grid.source = "images/icons/grid_black.png"
+        self.ids.piece_layout.set_grid(self.grid)
+    
+    def goto_settings(self):
+        self.parent.transition.direction = "left"
+        self.parent.current = "settings"
+    
+    def goto_help(self):
+        self.parent.transition.direction = "left"
+        self.parent.current = "help"
+    
     def reload(self):
         self.ids.piece_layout.reload()
     
@@ -362,10 +397,10 @@ class GameScreen(Screen):
         self.ids.status.font_name = font
         self.ids.score1.font_name = font
         self.ids.score2.font_name = font
-        self.ids.undo.font_name = font
-        self.ids.redo.font_name = font
-        self.ids.reset.font_name = font
-        self.ids._reload.font_name = font
+#        self.ids.undo.font_name = font
+#        self.ids.redo.font_name = font
+#        self.ids.reset.font_name = font
+#        self.ids._reload.font_name = font
     
     def set_game_variant(self, variant):
         print("setting game variant")
@@ -396,8 +431,8 @@ class GameScreen(Screen):
         if upd_status:
             status = self.game.board.get_state()
             self.ids.status.text = GameScreen.status_verbose[status]
-        self.ids.score1.text = str(self.game.board.score1)
-        self.ids.score2.text = str(self.game.board.score2)
+        self.ids.score1.text = "[color=d4af37]" + str(self.game.board.score1) + "[/color]"
+        self.ids.score2.text = "[color=b0c4de]" + str(self.game.board.score2) + "[/color]"
         self.ids.piece_layout.update()
         if self.sound == "enabled" and ismove:      # Consider encapsulating this
             if self.game.board.capture:             # within a separate method.
@@ -418,9 +453,11 @@ class GameScreen(Screen):
         self.sound      = settings['sound']
         self.grid       = settings['grid']
         self.speed      = settings['speed']
+        self.allowed    = settings['allowed']
         self.ids.piece_layout.set_mode(self.mode)
         self.ids.piece_layout.set_grid(self.grid)
         self.ids.piece_layout.set_speed(self.speed)
+        self.ids.piece_layout.set_allowed(self.allowed)
         size_x, size_y = self.game.board.size
         new_x = settings['size_x']
         new_y = settings['size_y']
@@ -441,6 +478,7 @@ class GameScreen(Screen):
             'sound':        self.sound,
             'speed':        self.speed,
             'grid':         self.grid,
+            'allowed':      self.allowed,
             'font':         self.ids.status.font_name,   # arbitrary choice
             'variant':      self.variant
         }
@@ -455,6 +493,7 @@ class PieceLayout(FloatLayout):
         Window.bind(size=self.on_window_size)
         self.mode = "drag"
         self.speed = "fast"
+        self.allowed = "enabled"
         self.animating = False
         self.anim_from = None
         self.anim_to = None
@@ -482,28 +521,33 @@ class PieceLayout(FloatLayout):
         print("starting piece animation")
         self.anim_from = move['from pos']
         self.anim_to = move['to pos']
+        self.show_anim(True)
         from_pos = self.coords_to_pos(self.anim_from)
         self.moving.pos = from_pos
         x, y = self.anim_from
-        self.moving.set_value(self.board.piece_map[x][y])
-        self.piece_map[x][y].set_value(0)
+        Clock.schedule_once(lambda dx: self.moving.set_value(self.board.piece_map[x][y]), 0.05)
+        Clock.schedule_once(lambda dx: self.piece_map[x][y].set_value(0), 0.05)
         tox, toy = self.coords_to_pos(self.anim_to)
         trans = AnimationTransition.in_out_circ
         speed = PieceLayout.speed_map[self.speed]
         self.animation = Animation(x=tox, y=toy, duration=speed, transition=trans)
         self.animation.bind(on_complete=self.on_anim_stop)
         self.animation.bind(on_complete=stop_callback)
+        Clock.schedule_once(lambda dx: self.piece_map[x][y].reload(), 0.05)
+        Clock.schedule_once(lambda dx: self.moving.reload(), 0.05)
         self.animation.start(self.moving)
     
     def abort_animation(self):
         if self.animating:
             print("animation interrupted")
+            self.show_anim(False)
             self.animation.stop(self.moving)
             return True
         return False
     
     def on_anim_stop(self, animation, widget):
         print("piece animation complete")
+        self.show_anim(False)
         x, y = self.anim_from
         value = self.board.piece_map[x][y]
         self.piece_map[x][y].set_value(value)
@@ -511,6 +555,26 @@ class PieceLayout(FloatLayout):
         self.anim_from = None
         self.anim_to = None
         self.animating = False
+    
+    # For some reason, within this method and animate_move, changes to certain
+    # piece states cause some piece textures to glitch black unless the state
+    # changes are scheduled. It might have something to do with the updates
+    # needing to take place within the main UI thread. 
+    def show_anim(self, show):
+        if (not self.anim_from is None) and (not self.anim_to is None):
+            fx, fy = self.anim_from
+            tx, ty = self.anim_to
+            if show:
+                state = self.board.get_state()
+                if state == 'player1' or state == 'init':
+                    Clock.schedule_once(lambda dx: self.piece_map[fx][fy].set_state('player1'), 0.05)
+                elif state == 'player2':
+                    Clock.schedule_once(lambda dx: self.piece_map[fx][fy].set_state('player2'), 0.05)
+                Clock.schedule_once(lambda dx: self.piece_map[tx][ty].set_state('allowed'), 0.05)
+            else:
+                Clock.schedule_once(lambda dx: self.piece_map[fx][fy].set_state('unselected'), 0.05)
+                Clock.schedule_once(lambda dx: self.piece_map[tx][ty].set_state('unselected'), 0.05)
+            
         
     def enable(self):
         if self.populated:
@@ -537,6 +601,9 @@ class PieceLayout(FloatLayout):
         else:
             raise ValueError
     
+    def set_allowed(self, allowed):
+        self.allowed = allowed
+    
     def on_move_indicator(self, instance, value):
         Clock.schedule_once(self.reset_indicator, 0.1)
     
@@ -544,25 +611,11 @@ class PieceLayout(FloatLayout):
         self.move_indicator = []
     
     def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            self.unselect()
+            return False
         if self.selected is None and self.enabled:
-            print("piece layout on_touch_down processed")
-            self.selected = self.pos_to_coords(touch.pos)
-            x, y = self.selected
-            if x >= self.board.size[0] or y >= self.board.size[1]:
-                self.selected = None
-                return
-            self.update_offset(touch.pos)
-            if self.mode == "drag":
-                self.piece_map[x][y].set_value(0)
-                self.moving.set_value(self.board.piece_map[x][y])
-            state = self.board.get_state()
-            if state == 'player1' or state == 'init':
-                self.piece_map[x][y].set_state('player1')
-            elif state == 'player2':
-                self.piece_map[x][y].set_state('player2')
-            else:
-                self.selected = None
-                self.offset = None
+            self.select(touch)
         elif (not self.selected is None) and (not self.offset is None) and \
            self.enabled and self.mode == "click":
             dest = self.pos_to_coords(touch.pos)
@@ -594,7 +647,25 @@ class PieceLayout(FloatLayout):
             self.moving.pos = (px, py)
     
     def select(self, touch):
-        pass
+        print("piece layout on_touch_down processed")
+        self.selected = self.pos_to_coords(touch.pos)
+        x, y = self.selected
+#        if x >= self.board.size[0] or y >= self.board.size[1]:
+#            self.selected = None
+#            return
+        self.update_offset(touch.pos)
+        if self.mode == "drag":
+            self.piece_map[x][y].set_value(0)
+            self.moving.set_value(self.board.piece_map[x][y])
+        state = self.board.get_state()
+        if state == 'player1' or state == 'init':
+            self.piece_map[x][y].set_state('player1')
+        elif state == 'player2':
+            self.piece_map[x][y].set_state('player2')
+        else:
+            self.selected = None
+            self.offset = None
+        self.show_allowed()
     
     def unselect(self):
         if self.selected:
@@ -604,6 +675,20 @@ class PieceLayout(FloatLayout):
             self.piece_map[x][y].set_state('unselected')
             self.selected = None
             self.offset = None
+            self.hide_allowed()
+    
+    def show_allowed(self):
+        if self.allowed == 'disabled':
+            return
+        if (not self.selected is None) and (not self.board is None):
+            allowed = self.board.get_allowed(*self.selected)
+            for x, y in allowed:
+                self.piece_map[x][y].set_state('allowed')
+    
+    def hide_allowed(self):
+        for x in range(self.board.size[0]):
+            for y in range(self.board.size[1]):
+                self.piece_map[x][y].hide_allowed()
     
     def update_offset(self, pos):
         coords = self.pos_to_coords(pos)
@@ -622,9 +707,9 @@ class PieceLayout(FloatLayout):
         self.update_dimensions()
     
     def update_dimensions(self):
-        if not self.X is None and not self.Y is None:
+        if (not self.X is None) and (not self.Y is None):
             max_height = self.parent.height
-            max_width = Window.size[0]
+            max_width = self.parent.width   
             w_from_h = max_height * self.X / self.Y
             h_from_w = max_width * self.Y / self.X
             if w_from_h <= max_width:
@@ -633,8 +718,8 @@ class PieceLayout(FloatLayout):
             else:
                 self.width = max_width
                 self.height = h_from_w
-            self.x = (max_width - self.width) / 2
-            self.y = max_height * 0.1
+            self.x = self.parent.x + (max_width - self.width) / 2
+            self.y = self.parent.y + (max_height - self.height) / 2
         else:
             print("rejecting update dimensions")
     
@@ -785,8 +870,9 @@ class ChipPiece(FloatLayout):
         'transparent':  "images/tiles/square_transparent.png",
         'unselected':   "images/tiles/square_empty.png",
         'grid':         "images/tiles/square_grid.png",
-        'player1':      "images/tiles/square_red.png",
-        'player2':      "images/tiles/square_blue.png"
+        'player1':      "images/tiles/player-1-square.png",
+        'player2':      "images/tiles/player-2-square.png",
+        'allowed':      "images/tiles/allowed-1.png"
     }
     
     def __init__(self, **kwargs):
@@ -850,6 +936,12 @@ class ChipPiece(FloatLayout):
         else:
             self.ids.background.source = ChipPiece.background[state]
     
+    def hide_allowed(self):
+        print("piece.hide_allowed called.")
+        if self.state == "allowed":
+            print("state is allowed, changing.")
+            self.set_state("unselected")
+    
 
 class Piece(FloatLayout):
     f_srcs = {
@@ -865,8 +957,9 @@ class Piece(FloatLayout):
         'transparent':  "images/tiles/square_transparent.png",
         'unselected':   "images/tiles/square_empty.png",
         'grid':         "images/tiles/square_grid.png",
-        'player1':      "images/tiles/square_red.png",
-        'player2':      "images/tiles/square_blue.png"
+        'player1':      "images/tiles/player-1-square.png",
+        'player2':      "images/tiles/player-2-square.png",
+        'allowed':      "images/tiles/allowed-1.png"
     }
     
     def __init__(self, **kwargs):
@@ -881,6 +974,9 @@ class Piece(FloatLayout):
         self.X = size[0]
         self.Y = size[1]
         self.coords = coords
+    
+#    def on_pos(self, instance, pos):
+#        self.reload()
     
     def on_parent(self, instance, parent):
         if not parent is None:
@@ -918,6 +1014,10 @@ class Piece(FloatLayout):
             self.ids.background.source = Piece.b_srcs['grid']
         else:
             self.ids.background.source = Piece.b_srcs[state]
+    
+    def hide_allowed(self):
+        if self.state == "allowed":
+            self.set_state("unselected")
         
 
 
