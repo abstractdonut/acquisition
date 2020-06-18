@@ -49,17 +49,3 @@
                 text: ""
 
 
-<ButtonLabel@ButtonBehavior+Label>:
-    font_name: "fonts/Brendohand.otf"
-    font_size: 24
-    color: .85, .85, .85, 1
-
-<Description@ButtonBehavior+Label>:
-    font_name: "fonts/Brendohand.otf"
-    font_size: 24
-    color: .45, .45, .45, 1
-
-<TitleLabel@Label>:
-    font_name: "fonts/Brendohand.otf"
-    font_size: 26
-    color: 1, 0, 0, 1

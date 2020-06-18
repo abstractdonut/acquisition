@@ -17,6 +17,7 @@ class SettingsScreen(Screen):
     sound = OptionProperty("enabled", options=["enabled", "disabled"])
     speed = OptionProperty("fast", options=["immediate", "fast", "slow"])
     grid = OptionProperty("enabled", options=["enabled", "disabled"])
+    allowed = OptionProperty("enabled", options=["enabled", "disabled"])
     font = StringProperty("fonts/CaviarDreams.ttf")
     
     def __init__(self, **kwargs):
@@ -25,6 +26,7 @@ class SettingsScreen(Screen):
         self.gold = "d4af37"
         self.silver = "b0c4de"
         self.rust = "b7410e"
+        self.update_text()
     
     def retrieve_fonts(self):
         filenames = os.listdir('fonts/')
@@ -135,6 +137,13 @@ class SettingsScreen(Screen):
 #        self.ids.grid.text = "grid is " + self.grid
         self.update_text()
     
+    def alter_allowed(self):
+        if self.allowed == "enabled":
+            self.allowed = "disabled"
+        else:
+            self.allowed = "enabled"
+        self.update_text()
+    
     def alter_font(self):
         fonts = self.retrieve_fonts()
         print("\nretreived the following fonts", fonts)
@@ -172,6 +181,8 @@ class SettingsScreen(Screen):
                               (self._color(self.speed), self.speed)
         self.ids.grid.text = "grid is [color=%s]%s[/color]" % \
                              (self._color(self.grid), self.grid)
+        self.ids.allowed.text = "move highlighting is [color=%s]%s[/color]" % \
+                                (self._color(self.allowed), self.allowed)
 #        self.ids.font.text = "using [color=%s]%s[/color] font" % \
 #                             (self.gold, self.font.split('/')[1].split('.')[0])
     
@@ -203,6 +214,7 @@ class SettingsScreen(Screen):
             "sound":        self.sound,
             "speed":        self.speed,
             "grid":         self.grid,
+            "allowed":      self.allowed,
             "font":         self.font,
             "variant":      self.variant
         }
@@ -218,6 +230,7 @@ class SettingsScreen(Screen):
         self.sound      = settings['sound']
         self.speed      = settings['speed']
         self.grid       = settings['grid']
+        self.allowed    = settings['allowed']
         self.font       = settings['font']
         self.variant    = settings['variant']
         self.update_text()

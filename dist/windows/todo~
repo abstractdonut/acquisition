@@ -27,4 +27,4 @@
 [X] selecting a piece, exiting before completing the move, and changing mode to "drag" causes a crash.
 [ ] remove the font setting and set the font of all labels and buttons to CaviarDreams
 [ ] implement an option to show available moves on piece selection
-[ ] currently the game autosaves on exit. consider implementing autosav on variant change as well
+[ ] currently the game autosaves on exit. consider implementing autosave on variant change as well

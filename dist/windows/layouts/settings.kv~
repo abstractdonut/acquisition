@@ -42,6 +42,10 @@
                 id: grid
                 text: "grid is enabled"
                 on_press: root.alter_grid()
+            ButtonLabel:
+                id: allowed
+                text: "show legal moves"
+                on_press: root.alter_allowed()
 #            ButtonLabel:
 #                id: font
 #                text: "using Brendohand font"
@@ -50,14 +54,14 @@
                 text: ""
 
 
-<ButtonLabel@ButtonBehavior+Label>:
-    font_name: "fonts/CaviarDreams.ttf"
-    font_size: 24
-    color: .85, .85, .85, 1
-    markup: True
+#<ButtonLabel@ButtonBehavior+Label>:
+#    font_name: "fonts/CaviarDreams.ttf"
+#    font_size: 24
+#    color: .85, .85, .85, 1
+#    markup: True
 
-<TitleLabel@Label>:
-    font_name: "fonts/Brendohand.otf"
-    font_size: 26
-    markup: True
-    color: 1, 0, 0, 1
+#<TitleLabel@Label>:
+#    font_name: "fonts/CaviarDreams.ttf"
+#    font_size: 26
+#    markup: True
+#    color: 1, 0, 0, 1

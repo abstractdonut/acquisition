@@ -1,0 +1,79 @@
+<HelpScreen>:
+    ScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        
+        HelpLayout
+
+<HelpLayout@GridLayout>:
+    rows: 1
+    cols: 3
+    
+    size_hint: 1, 3
+    
+    Label:
+        size_hint: .1, 1
+        text: ''
+    GridLayout:
+        rows: 12
+        cols: 1
+        size_hint: .8, 1
+        
+        Heading:
+            text: "How to Win"
+        
+        Paragraph:
+            text: "Acquire more pieces than the opponent by the end of the game"
+        
+        Heading:
+            text: "How to play"
+        
+        Paragraph:
+            text: "Players alternate turns moving pieces between squares"
+        
+        Paragraph:
+            text: "Pieces may be moved either horizontally or vertically"
+        
+        Paragraph:
+            text: "A single move shifts all the pieces away from a given square"
+        
+        Paragraph:
+            text: "Players can move pieces from any square on each turn"
+        
+        Paragraph:
+            text: "The distance which pieces are moved must be the same as the number of pieces which are moved"
+        
+        Paragraph:
+            text: "Pieces may not be moved onto an empty square"
+        
+        Paragraph:
+            text: "Moves may 'bounce' off the edge of the board"
+        
+        Paragraph:
+            text: "On the standard board (7x7), a player that creates a stack of 6 or more pieces removes those pieces for scoring"
+        
+        Paragraph:
+            text: "The game ends when there are no available moves on a given turn"
+
+    Label:
+        size_hint: .1, 1
+        text: ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

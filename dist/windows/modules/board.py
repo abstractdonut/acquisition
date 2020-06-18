@@ -177,6 +177,19 @@ class Board():
                         if self.is_legal(move):
                             legal_moves += [move]
         return legal_moves
+   
+    def get_allowed(self, x, y):
+        allowed = []
+        for x2 in range(self.size[0]):
+            for y2 in range(self.size[1]):
+                move = {'from pos': (x, y),
+                        'to pos': (x2, y2),
+                        'from val': self.piece_map[x][y],
+                        'to val': self.piece_map[x2][y2]
+                }
+                if self.is_legal(move):
+                    allowed.append((x2, y2))
+        return allowed
     
     # Produces the best move for the current player using minimax search.
     def best_move(self, callback, depth=1, breadth=16, handicap=0):

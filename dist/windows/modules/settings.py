@@ -17,6 +17,7 @@ class SettingsScreen(Screen):
     sound = OptionProperty("enabled", options=["enabled", "disabled"])
     speed = OptionProperty("fast", options=["immediate", "fast", "slow"])
     grid = OptionProperty("enabled", options=["enabled", "disabled"])
+    allowed = OptionProperty("enabled", options=["enabled", "disabled"])
     font = StringProperty("fonts/CaviarDreams.ttf")
     
     def __init__(self, **kwargs):
@@ -136,6 +137,13 @@ class SettingsScreen(Screen):
 #        self.ids.grid.text = "grid is " + self.grid
         self.update_text()
     
+    def alter_allowed(self):
+        if self.allowed == "enabled":
+            self.allowed = "disabled"
+        else:
+            self.allowed = "enabled"
+        self.update_text()
+    
     def alter_font(self):
         fonts = self.retrieve_fonts()
         print("\nretreived the following fonts", fonts)
@@ -155,7 +163,7 @@ class SettingsScreen(Screen):
     def update_text(self):
         self.ids.board_size.text = "board size is [color=%s]%d, %d[/color]" % \
                                    (self.gold, self.size_x, self.size_y)
-        self.ids.mode.text = "mode set to [color=%s]%s[/color]" % \
+        self.ids.mode.text = "move pieces via [color=%s]%s[/color]" % \
                              (self._color(self.mode), self.mode)
         if self.player1 == "human":
             self.ids.player1.text = "player 1 is [color=%s]human[/color]" % self.gold
@@ -173,6 +181,8 @@ class SettingsScreen(Screen):
                               (self._color(self.speed), self.speed)
         self.ids.grid.text = "grid is [color=%s]%s[/color]" % \
                              (self._color(self.grid), self.grid)
+        self.ids.allowed.text = "move highlighting is [color=%s]%s[/color]" % \
+                                (self._color(self.allowed), self.allowed)
 #        self.ids.font.text = "using [color=%s]%s[/color] font" % \
 #                             (self.gold, self.font.split('/')[1].split('.')[0])
     
@@ -204,6 +214,7 @@ class SettingsScreen(Screen):
             "sound":        self.sound,
             "speed":        self.speed,
             "grid":         self.grid,
+            "allowed":      self.allowed,
             "font":         self.font,
             "variant":      self.variant
         }
@@ -219,6 +230,7 @@ class SettingsScreen(Screen):
         self.sound      = settings['sound']
         self.speed      = settings['speed']
         self.grid       = settings['grid']
+        self.allowed    = settings['allowed']
         self.font       = settings['font']
         self.variant    = settings['variant']
         self.update_text()

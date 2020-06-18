@@ -3,8 +3,11 @@ from kivy.clock import Clock
 
 class TitleScreen(Screen):
     def __init__(self, **kwargs):
-        super(TitleScreen, self).__init__(**kwargs)
         self.gold = "d4af37"
+        super(TitleScreen, self).__init__(**kwargs)
+    
+    def on_enter(self):
+        self.screenmanager.backscr = "title"
     
     def on_parent(self, instance, parent):
         self.screenmanager = parent
@@ -23,37 +26,38 @@ class TitleScreen(Screen):
     
     def set_font(self, font):
         print("setting font for title")
-        self.ids.title.font_name = font
+#        self.ids.title.font_name = font
         self.ids.play.font_name = font
         self.ids.continue_game.font_name = font
         self.ids.variants.font_name = font
         self.ids.help.font_name = font
         self.ids.settings.font_name = font
         self.ids.about.font_name = font
-    
+        
     def play(self, dt=0):
+        self.screenmanager.game_screen.reset()
         self.screenmanager.transition.direction = "left"
         self.screenmanager.current = "game"
     
     # Named so because 'continue' is already a keyword in python.
     def continue_game(self):
         self.screenmanager.game_screen.load_game()
-        Clock.schedule_once(self.play, 0.1)
+        self.screenmanager.transition.direction = "left"
+        self.screenmanager.current = "game"
     
     def variants(self):
         self.screenmanager.transition.direction = "left"
         self.screenmanager.current = "variants"
     
     def help(self):
-#        self.screenmanager.transition.direction = "left"
-#        self.screenmanager.current = "help"
-        pass
+        self.screenmanager.transition.direction = "left"
+        self.screenmanager.current = "help"
         
     def settings(self):
         self.screenmanager.transition.direction = "left"
         self.screenmanager.current = "settings"
     
     def about(self):
-#        self.screenmanager.transition.direction = "left"
-#        self.screenmanager.current = "about"
+        self.screenmanager.transition.direction = "left"
+        self.screenmanager.current = "about"
         pass

@@ -177,6 +177,20 @@ class Board():
                         if self.is_legal(move):
                             legal_moves += [move]
         return legal_moves
+   
+    def get_allowed(self, x, y):
+        allowed = []
+        for x2 in range(self.size[0]):
+            for y2 in range(self.size[1]):
+                move = {'from pos': (x, y),
+                        'to pos': (x2, y2),
+                        'from val': self.piece_map[x][y],
+                        'to val': self.piece_map[x2][y2]
+                }
+                if self.is_legal(move):
+                    allowed.append((x2, y2))
+        return allowed
+                    
     
     # Produces the best move for the current player using minimax search.
     def best_move(self, callback, depth=1, breadth=16, handicap=0):
@@ -293,7 +307,6 @@ class GolfVariant(Board):
             raise RuntimeError
         self.push(move)
         moves = self.legal_moves()
-        self.sort(moves)
         moves = moves if len(moves) <= breadth else moves[:breadth]
         if len(moves) == 0 or depth == 0:
             score = self.score2 - self.score1
