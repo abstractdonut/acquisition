@@ -2,6 +2,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.properties import (
 BoundedNumericProperty, OptionProperty, StringProperty
 )
+from kivy.clock import Clock
 
 import os
 import pickle
@@ -12,13 +13,14 @@ class SettingsScreen(Screen):
     size_y = BoundedNumericProperty(7, min=3, max=42)
     mode = OptionProperty("drag", options=["drag", "click"])
     player1 = OptionProperty("human", options=["human", "computer"])
-    player2 = OptionProperty("human", options=["human", "computer"])
+    player2 = OptionProperty("computer", options=["human", "computer"])
     difficulty = OptionProperty("challenging", options=["easy", "challenging", "formidable"])
     sound = OptionProperty("enabled", options=["enabled", "disabled"])
     speed = OptionProperty("fast", options=["immediate", "fast", "slow"])
     grid = OptionProperty("enabled", options=["enabled", "disabled"])
     allowed = OptionProperty("enabled", options=["enabled", "disabled"])
     font = StringProperty("fonts/CaviarDreams.ttf")
+    hold = False
     
     def __init__(self, **kwargs):
         super(SettingsScreen, self).__init__(**kwargs)
@@ -27,6 +29,13 @@ class SettingsScreen(Screen):
         self.silver = "b0c4de"
         self.rust = "b7410e"
         self.update_text()
+    
+    def start_hold(self):
+        self.hold = True
+        Clock.schedule_once(self.end_hold, 0.1)
+    
+    def end_hold(self, dt):
+        self.hold = False
     
     def retrieve_fonts(self):
         filenames = os.listdir('fonts/')
@@ -60,6 +69,12 @@ class SettingsScreen(Screen):
 #        self.ids.board_size.text = "board size is %d, %d" % (self.size_x, self.size_y)
 
     def alter_board_size(self):
+        # For whatever reason buttons sometimes release twice following a single
+        # press. The hold prevents this function and others in this module from
+        # being called twice within some span of time.
+        if self.hold:
+            return
+        self.start_hold()
         if self.size_x == 5:
             self.size_x = 7
             self.size_y = 7
@@ -74,16 +89,24 @@ class SettingsScreen(Screen):
             self.size_y = 5
         #self.ids.board_size.text = "board size is %d, %d" % (self.size_x, self.size_y)
         self.update_text()
+        self.save_settings()
     
     def alter_mode(self):
+        if self.hold:
+            return
+        self.start_hold()
         if self.mode == "drag":
             self.mode = "click"
         else:
             self.mode = "drag"
 #        self.ids.mode.text = "mode set to " + self.mode
         self.update_text()
+        self.save_settings()
     
     def alter_player1(self):
+        if self.hold:
+            return
+        self.start_hold()
         if self.player1 == "human":
             self.player1 = "computer"
             #self.ids.player1.text = "player 1 is a [color=%s]computer[/color]" % (self.rust)
@@ -91,8 +114,12 @@ class SettingsScreen(Screen):
             self.player1 = "human"
             #self.ids.player1.text = "player 1 is [color=%s]human[/color]" % (self.gold)
         self.update_text()
+        self.save_settings()
     
     def alter_player2(self):
+        if self.hold:
+            return
+        self.start_hold()
         if self.player2 == "human":
             self.player2 = "computer"
 #            self.ids.player2.text = "player 2 is a [color=%s]computer[/color]" % (self.rust)
@@ -100,8 +127,12 @@ class SettingsScreen(Screen):
             self.player2 = "human"
 #            self.ids.player2.text = "player 2 is [color=%s]human[/color]" % (self.gold)
         self.update_text()
+        self.save_settings()
     
     def alter_difficulty(self):
+        if self.hold:
+            return
+        self.start_hold()
         if self.difficulty == "easy":
             self.difficulty = "challenging"
         elif self.difficulty == "challenging":
@@ -110,16 +141,24 @@ class SettingsScreen(Screen):
             self.difficulty = "easy"
 #        self.ids.difficulty.text = "computer difficulty is " + self.difficulty
         self.update_text()
+        self.save_settings()
     
     def alter_sound(self):
+        if self.hold:
+            return
+        self.start_hold()
         if self.sound == "enabled":
             self.sound = "disabled"
         else:
             self.sound = "enabled"
 #        self.ids.sound.text = "sound is " + self.sound
         self.update_text()
+        self.save_settings()
     
     def alter_speed(self):
+        if self.hold:
+            return
+        self.start_hold()
         if self.speed == "fast":
             self.speed = "slow"
         elif self.speed == "slow":
@@ -128,23 +167,35 @@ class SettingsScreen(Screen):
             self.speed = "fast"
 #        self.ids.speed.text = "move animation speed is " + self.speed
         self.update_text()
+        self.save_settings()
     
     def alter_grid(self):
+        if self.hold:
+            return
+        self.start_hold()
         if self.grid == "enabled":
             self.grid = "disabled"
         else:
             self.grid = "enabled"
 #        self.ids.grid.text = "grid is " + self.grid
         self.update_text()
+        self.save_settings()
     
     def alter_allowed(self):
+        if self.hold:
+            return
+        self.start_hold()
         if self.allowed == "enabled":
             self.allowed = "disabled"
         else:
             self.allowed = "enabled"
         self.update_text()
+        self.save_settings()
     
     def alter_font(self):
+        if self.hold:
+            return
+        self.start_hold()
         fonts = self.retrieve_fonts()
         print("\nretreived the following fonts", fonts)
         print("\ncurrent font is", self.font)
@@ -158,12 +209,13 @@ class SettingsScreen(Screen):
             self.font = "fonts/Brendohand.otf"
         #self.ids.font.text = "using %s font" % self.font.split('/')[1].split('.')[0]
         self.update_text()
+        self.save_settings()
     
     # TODO this has not been modified to include recent settings additions
     def update_text(self):
         self.ids.board_size.text = "board size is [color=%s]%d, %d[/color]" % \
                                    (self.gold, self.size_x, self.size_y)
-        self.ids.mode.text = "mode set to [color=%s]%s[/color]" % \
+        self.ids.mode.text = "move pieces via [color=%s]%s[/color]" % \
                              (self._color(self.mode), self.mode)
         if self.player1 == "human":
             self.ids.player1.text = "player 1 is [color=%s]human[/color]" % self.gold

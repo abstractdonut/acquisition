@@ -14,13 +14,13 @@ class TitleScreen(Screen):
     
     def set_variant(self, variant):
         if variant == "standard":
-            self.ids.title.text = "ACQUISITION"
+            self.ids.title.source = "images/logo/title/Acquisition-logo-4.png"
         elif variant == "golf":
-            self.ids.title.text = "ACQUISITION ~ [color=%s]GOLF[/color]" % self.gold
+            self.ids.title.source = "images/logo/title/Acquisition-logo-4-golf.png"
         elif variant == "diagonal":
-            self.ids.title.text = "ACQUISITION ~ [color=%s]ODD DIAGONALS[/color]" % self.gold
+            self.ids.title.source = "images/logo/title/Acquisition-logo-4-odd-diagonals.png"
         elif variant == "checkers":
-            self.ids.title.text = "ACQUISITION ~ [color=%s]CHECKERS[/color]" % self.gold
+            self.ids.title.source = "images/logo/title/Acquisition-logo-4-checkers.png"
         else:
             raise ValueError
     

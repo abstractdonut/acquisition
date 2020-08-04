@@ -1,12 +1,11 @@
 <VariantsScreen>:
     GridLayout:
-        rows: 2
+        rows: 3
         cols: 1
         TitleLabel:
             id: title
             size_hint: 1, .35
             text: "ACQUISITION VARIANTS"
-            font_size: 36
         GridLayout:
             rows: 12
             cols: 1
@@ -37,15 +36,17 @@
                 text: "Move diagonally on odd turns."
                 on_press: root.diagonals()
             Label:
-            ButtonLabel:
-                id: checkers
-                text: "Capture Like Checkers"
-                on_press: root.checkers()
-            Description:
-                id: checkers_desc
-                text: "Capture pieces by jumping over them"
-                on_press: root.checkers()
-            Label:
-                text: ""
+#            ButtonLabel:
+#                id: checkers
+#                text: "Capture Like Checkers"
+#                on_press: root.checkers()
+#            Description:
+#                id: checkers_desc
+#                text: "Capture pieces by jumping over them"
+#                on_press: root.checkers()
+        ImageButton:
+            size_hint: 1, 0.8
+            on_release: app.root.escape()
+            source: "images/icons/back.png"
 
 

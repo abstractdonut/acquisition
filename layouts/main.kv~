@@ -3,12 +3,16 @@
         Rectangle:
             pos: self.pos
             size: self.size
-            source: self.bgimg
+#            source: self.bgimg
+            source: "images/textures/elegant.jpg"
 
 # used in title.kv, settings.kv, variants.kv
 <ButtonLabel@ButtonBehavior+Label>:
     font_name: "fonts/CaviarDreams.ttf"
-    font_size: 30
+    font_size: "30dp"
+    text_size: self.size
+    width: self.texture_size[0]
+    halign: "center"
 #    color: .85, .85, .85, 1
     color: 0, 0, 0, 1
     markup: True
@@ -16,14 +20,18 @@
 # used in settings.kv, variants.kv
 <TitleLabel@Label>:
     font_name: "fonts/CaviarDreams.ttf"
-    font_size: 26
+    font_size: "30dp"
     markup: True
     color: 1, 0, 0, 1
 
 # used in variants.kv
 <Description@ButtonBehavior+Label>:
     font_name: "fonts/CaviarDreams.ttf"
-    font_size: 24
+    font_size: "24dp"
+    text_size: self.size
+    height: self.texture_size[1]
+    halign: "center"
+    valign: "center"
     color: .3, .3, .3, 1
 
 # used in game.kv
@@ -32,14 +40,14 @@
 # used in game.kv
 <CustomLabel@Label>:
     font_name: "fonts/CaviarDreams.ttf"
-    font_size: 26
+    font_size: "26dp"
     color: 0, 0, 0, 1
     markup: True
 
 # used in game.kv
 <CustomButton@Button>:
     font_name: "fonts/CaviarDreams.ttf"
-    font_size: 26
+    font_size: "26dp"
     color: 0, 0, 0, 1
 
 # used in help.kv
@@ -50,17 +58,16 @@
     halign: "center"
     valign: "center"
     color: 1, 0, 0, 1
-    font_size: 36
+    font_size: "36dp"
 
 # used in help.kv, about.kv
 <Paragraph@Label>:
     font_name: "fonts/CaviarDreams.ttf"
     text_size: self.size
     height: self.texture_size[1]
-#    width: self.texture_size[0]
     halign: "center"
     valign: "center"
-    font_size: 26
+    font_size: "26dp"
     color: 0, 0, 0, 1
     markup: True
 

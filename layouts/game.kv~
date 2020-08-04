@@ -1,95 +1,87 @@
 <GameScreen>:
-#    canvas.before:
-#        Color: 
-#            rgb: .4, .3, .2
-#        Rectangle:
-#            pos: self.pos
-#            size: self.size
     GridLayout:
-        rows: 1
-        cols: 3
-        Label:
-            size_hint: 0.1, 1
-            text: ' '
+        rows: 8
+        cols: 1
         GridLayout:
-            rows: 3
+            rows: 4
             cols: 1
-            GridLayout:
-                rows: 4
-                cols: 1
-                size_hint: 1, .2
-                Label:
-                    text: ""
+            size_hint: 1, .2
+            Label:
+                text: ""
+            CustomLabel:
+                size_hint: 1, .3    
+                id: status
+                text: ""
+            Label:
+                text: ""
+            GridLayout: # Scores
+                rows: 1
+                cols: 2
                 CustomLabel:
-                    size_hint: 1, .3    
-                    id: status
-                    text: ""
-#                    color: .9, .9, .9, 1
-                Label:
-                    text: ""
-                GridLayout: # Scores
-                    rows: 1
-                    cols: 2
-#                    Label:
-#                        size_hint: 0.1, 1
-#                        text: ' '
-                    CustomLabel:
-                        id: score1
-                        text: '[b][color=d4af37]0[/color][/b]'
-                    CustomLabel:
-                        id: score2
-                        text: '[b][color=b0c4de]0[/color][/b]'
-#                    Label:
-#                        size_hint: 0.1, 1
-#                        text: ' '
-            FloatLayout:
-                PieceLayout:
-                    size_hint: None, None
-                    id: piece_layout
-                    #size_hint: None, 1
-            FloatLayout:
-                size_hint: 1, .1
-                GridLayout:
-                    id: controls
-                    rows: 1
-                    cols: 3
-                    size_hint: None, 1
-                    ImageButton:
-                        id: undo
-                        on_release: root.undo()
-                        source: "images/icons/undo_black.png"
-                    ImageButton:
-                        id: reset
-                        on_release: root.reset()
-                        source: "images/icons/restart_black.png"
-                    ImageButton:
-                        id: redo
-                        on_release: root.redo()
-                        source: "images/icons/redo_black.png"
-        GridLayout:
-            rows: 6
-            cols: 1
-            size_hint: 0.1, 1
-            Label:
-                text: ""
+                    id: score1
+                    text: '[color=d4af37]0[/color]'
+                CustomLabel:
+                    id: score2
+                    text: '[color=b0c4de]0[/color]'
+        FloatLayout:
+            PieceLayout:
+                size_hint: None, None
+                id: piece_layout
+        FloatLayout:
+            size_hint: 1, .075
+            GridLayout:
+                id: controls
+                rows: 1
+                cols: 3
+                size_hint: None, 1
+                pos: self.parent.pos
+                ImageButton:
+                    id: undo
+                    on_release: root.undo()
+                    source: "images/icons/undo_black.png"
+                ImageButton:
+                    id: reset
+                    on_release: root.reset()
+                    source: "images/icons/restart_black.png"
+                ImageButton:
+                    id: redo
+                    on_release: root.redo()
+                    source: "images/icons/redo_black.png"
+        FloatLayout:
+            size_hint: 1, .75
+        FloatLayout:
+            size_hint: 1, .75
+            GridLayout:
+                id: nav
+                rows: 1
+                cols: 4
+                pos: self.parent.pos
+                size_hine: None, 1
+                ImageButton:
+                    id: toggle_sound
+                    on_release: root.toggle_sound()
+                    source: "images/icons/volume_black.png"
+                ImageButton:
+                    id: toggle_grid
+                    on_release: root.toggle_grid()
+                    source: "images/icons/grid_black.png"
+                ImageButton:
+                    id: goto_settings
+                    on_release: root.goto_settings()
+                    source: "images/icons/settings_black.png"
+                ImageButton:
+                    id: goto_help
+                    on_release: root.goto_help()
+                    source: "images/icons/help_black.png"
+        FloatLayout:
+            size_hint: 1, .75
+        FloatLayout:
+            size_hint: 1, .75
             ImageButton:
-                id: toggle_sound
-                on_release: root.toggle_sound()
-                source: "images/icons/volume_black.png"
-            ImageButton:
-                id: toggle_grid
-                on_release: root.toggle_grid()
-                source: "images/icons/grid_black.png"
-            ImageButton:
-                id: goto_settings
-                on_release: root.goto_settings()
-                source: "images/icons/settings_black.png"
-            ImageButton:
-                id: goto_help
-                on_release: root.goto_help()
-                source: "images/icons/help_black.png"
-            Label:
-                text: ""
+                pos: self.parent.pos
+                #size_hint: None, 1
+                on_release: app.root.escape()
+                source: "images/icons/back.png"
 
 <ChipPiece>:
     size_hint: None, None
@@ -116,11 +108,13 @@
         size_hint: None, None
         size: self.parent.size
         pos: self.parent.pos
+        allow_stretch: True
     Image:
         id: foreground
         size_hint: None, None
         size: self.parent.size
         pos: self.parent.pos
+        allow_stretch: True
 
 
 

@@ -89,7 +89,9 @@ class Board():
     # the strings 'from' and 'to' to respective indices into the piece_map.
     def push(self, move):
         if not self.is_legal(move):
+            print("board.push failed.")
             raise ValueError
+        print("pushing following move to board:", move)
         fpos = move['from pos']
         tpos = move['to pos']
         fval = self.piece_map[fpos[0]][fpos[1]]

@@ -20,6 +20,7 @@
         size_hint: .4, 1
         
         Label:
+            size_hint: 1, .33
             text: ''
         
         Paragraph:
@@ -40,8 +41,10 @@
                 import webbrowser
                 webbrowser.open('https://www.freepik.com/free-vector/elegant-white-texture-background_6765110.htm#page=1&query=white%20texture&position=12#&position=12')
         
-        Label:
-            text: ''
+        ImageButton:
+            size_hint: 1, 0.33
+            on_release: app.root.escape()
+            source: "images/icons/back.png"
     
     Label:
         size_hint: .1, 1

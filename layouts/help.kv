@@ -1,21 +1,26 @@
 <HelpScreen>:
-    ScrollView:
-        do_scroll_x: False
-        do_scroll_y: True
-        
-        HelpLayout
+    GridLayout:
+        rows: 2
+        cols: 1
+        ScrollView:
+            id: scroll
+            do_scroll_x: False
+            do_scroll_y: True        
+            HelpLayout
+        ImageButton:
+            size_hint: 1, 0.08
+            on_release: app.root.escape()
+            source: "images/icons/back.png"
 
 <HelpLayout@GridLayout>:
     rows: 1
     cols: 3
-    
     size_hint: 1, 3
-    
     Label:
         size_hint: .1, 1
         text: ''
     GridLayout:
-        rows: 12
+        rows: 13
         cols: 1
         size_hint: .8, 1
         

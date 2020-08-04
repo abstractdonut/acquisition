@@ -1,3 +1,4 @@
+import kivy
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import Image
@@ -9,9 +10,13 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.cache import Cache
 
-import pygame
+# ANDROID VERSION
+from kivy.core.audio import SoundLoader
+# WINDOWS VERSION
+#import pygame
 import pickle
 import pprint
+import sys
 
 from modules.board import (
     Board, GolfVariant, CheckersVariant, CheckersVariant2, DiagonalVariant
@@ -44,8 +49,9 @@ class Game():
             c1 = self.line[self.indx+1]['from pos'] == frompos
             c2 = self.line[self.indx+1]['to pos'] == topos
             if c1 and c2:
-                print("make_move converted into redo")
-                assert(self.redo() == True)
+                if not self.redo():
+                    raise RuntimeError
+                self.save_game()
                 return True
         try:
             self.board.push({'from pos': frompos, 'to pos': topos})
@@ -53,6 +59,7 @@ class Game():
             return False
         self.indx = len(self.board.moves) - 1
         self.line = [move for move in self.board.moves]
+        self.save_game()
         return True
     
     def choose_move(self, callback, difficulty):
@@ -90,21 +97,25 @@ class Game():
             return self.line[self.indx + 1]
     
     def undo(self):
-        if self.indx >= 0:
-            pop = self.board.pop()
-            self.indx -= 1
-            print("popped the following move:", pop)
-            print("index changed from %d to %d" % (self.indx + 1, self.indx))
+        if self.indx >= 1:
+            self.board.pop()
+            self.board.pop()
+            self.indx -= 2
             return True
+        elif self.indx >= 0:
+            self.board.pop()
+            self.indx -= 1
         else:
             return False
     
     def redo(self):
         if self.indx + 1 < len(self.line):
             self.indx += 1
+            print("preparing to push move.")
             self.board.push(self.line[self.indx])
             return True
         else:
+            print("redo failed.")
             return False
     
     def reset(self):
@@ -166,11 +177,16 @@ class GameScreen(Screen):
         self.grid = "enabled"
         self.sound = "enabled"
         self.speed = "fast"
-        pygame.mixer.pre_init(22050, -16, 2, 2048) 
-        pygame.mixer.init()
-        self.move_sound1 = pygame.mixer.Sound("audio/move.wav")
-        self.move_sound2 = pygame.mixer.Sound("audio/move.wav")
-        self.capture_sound = pygame.mixer.Sound("audio/capture.wav")
+        # ANDROID VERSION
+        self.move_sound1 = SoundLoader.load('audio/move.wav')
+        self.move_sound2 = SoundLoader.load('audio/move.wav')
+        self.capture_sound = SoundLoader.load('audio/capture.wav')
+        # WINDOWS VERSION
+#        pygame.mixer.pre_init(22050, -16, 2, 2048) 
+#        pygame.mixer.init()
+#        self.move_sound1 = pygame.mixer.Sound("audio/move.wav")
+#        self.move_sound2 = pygame.mixer.Sound("audio/move.wav")
+#        self.capture_sound = pygame.mixer.Sound("audio/capture.wav")
         self.active = False
         self.pending = None
         self.redo_flag = False
@@ -180,20 +196,23 @@ class GameScreen(Screen):
         self.ids.piece_layout.bind(move_indicator=self.on_move_indicator)
         self.ids.piece_layout.bind(size=self.on_piece_layout_size)
         self.ids.status.text = GameScreen.status_verbose['init']
+        self.hold = False
     
     def on_touch_up(self, touch):
+#        if self.hold:
+#            return True
+#        self.start_hold()
         collide = self.ids.piece_layout.collide_point(*touch.pos)
         if collide:
             status = self.game.board.get_state()
             self.ids.status.text = GameScreen.status_verbose[status]
             if self.paused:
-                print("game screen on_touch_up digested.")
                 self.paused = False
+                self.start_turn(0)
+                print("game screen on_touch_up digested.")
                 return True
-        if not (collide and self.paused):
-            print("game screen on_touch_up ignored")
-            super(GameScreen, self).on_touch_up(touch)
-            return False
+        super(GameScreen, self).on_touch_up(touch)
+        return False
     
     def on_pre_enter(self):
         self.active = True
@@ -228,7 +247,7 @@ class GameScreen(Screen):
         if paused:
             self.ids.status.text = "Game Paused"
             self.ids.piece_layout.disable()
-        else:
+#        else:
             if not self.human_turn():
                 self.redo()
                 self.redo_flag = False
@@ -285,9 +304,11 @@ class GameScreen(Screen):
             self.game.make_move(self.pending['from pos'], self.pending['to pos'])
             self.pending = None
             if self.redo_flag:
+                print("on_anim_complete detected redo.")
                 self.update(True, False)
                 self.redo_flag = False
             else:
+                print("on_anim_complete did not detect redo.")
                 self.update()
     
     def on_move_indicator(self, instance, value):
@@ -317,6 +338,10 @@ class GameScreen(Screen):
         self.ids.controls.x = (Window.size[0] - self.ids.controls.width) / 2
     
     def undo(self, dt=0):
+        if self.hold:
+            print("Caught duplicate undo")
+            return True
+        self.start_hold()
         if self.ids.piece_layout.animating:
             # TODO Alter this to abort the animation and expedite the undo.
             print("rescheduling undo")
@@ -333,6 +358,10 @@ class GameScreen(Screen):
         self.update(False, False)
     
     def redo(self, dt=0):
+        if self.hold:
+            print("Caught duplicate redo")
+            return True
+        self.start_hold()
         if self.ids.piece_layout.animating:
             print("rescheduling redo")              # is this necessary now that the same
             self.ids.piece_layout.abort_animation() # sort of check has been implemented within
@@ -344,11 +373,17 @@ class GameScreen(Screen):
         move = self.game.next_move()
         if not move is None:
             self.paused = True
-            self.animate_move(self.game.next_move())
+            self.animate_move(move)
             self.redo_flag = True
             self.paused = True
     
     def reset(self, dt=0):
+        if self.hold:
+            print("Caught duplicate reset")
+            return True
+        self.start_hold()
+        print("sys.version is", sys.version)
+        print("kivy.__version__ is %s" % kivy.__version__)
         if self.ids.piece_layout.animating:
             print("rescheduling reset")
             self.ids.piece_layout.abort_animation()
@@ -365,6 +400,9 @@ class GameScreen(Screen):
         self.update(False)
     
     def toggle_sound(self):
+        if self.hold:
+            return
+        self.start_hold()
         if self.sound == "enabled":
             self.sound = "disabled"
             self.ids.toggle_sound.source = "images/icons/volume_gray.png"
@@ -373,6 +411,9 @@ class GameScreen(Screen):
             self.ids.toggle_sound.source = "images/icons/volume_black.png"
     
     def toggle_grid(self):
+        if self.hold:
+            return
+        self.start_hold()
         if self.grid == "enabled":
             self.grid = "disabled"
             self.ids.toggle_grid.source = "images/icons/grid_gray.png"
@@ -380,6 +421,13 @@ class GameScreen(Screen):
             self.grid = "enabled"
             self.ids.toggle_grid.source = "images/icons/grid_black.png"
         self.ids.piece_layout.set_grid(self.grid)
+    
+    def start_hold(self):
+        self.hold = True
+        Clock.schedule_once(self.end_hold, 0.1)
+    
+    def end_hold(self, dt):
+        self.hold = False 
     
     def goto_settings(self):
         self.parent.transition.direction = "left"
@@ -506,6 +554,7 @@ class PieceLayout(FloatLayout):
         self.offset = None
         self.X = None
         self.Y = None
+        self.hold = False
     
     speed_map = {
         'immediate': 0,
@@ -613,6 +662,9 @@ class PieceLayout(FloatLayout):
         self.move_indicator = []
     
     def on_touch_down(self, touch):
+        if self.hold:
+            return
+        self.start_hold()
         if not self.collide_point(*touch.pos):
             self.unselect()
             return False
@@ -626,6 +678,13 @@ class PieceLayout(FloatLayout):
             self.unselect()
         else:
             print("piece layout on_touch_down rejected")
+    
+    def start_hold(self):
+        self.hold = True
+        Clock.schedule_once(self.end_hold, 0.1)
+    
+    def end_hold(self, dt):
+        self.hold = False
     
     def on_touch_up(self, touch):
         print("piece layout on_touch_up received.")
