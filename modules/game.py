@@ -327,6 +327,7 @@ class GameScreen(Screen):
                 raise ValueError
     
     def on_window_size(self, window, size):
+        self.update_padding()
         self.update_controls()
     
     def on_piece_layout_size(self, instance, size):
@@ -336,6 +337,25 @@ class GameScreen(Screen):
         width = self.ids.piece_layout.width
         self.ids.controls.width = min(width * 4 / 3, Window.size[0])
         self.ids.controls.x = (Window.size[0] - self.ids.controls.width) / 2
+    
+    def update_padding(self):
+        k = 2/3         # width coefficient
+        if Window.size[0] <= k * Window.size[1]:
+            self.ids.container.padding = [0, 0, 0, 0]
+        else:
+            gwidth = k * Window.size[1]
+            pwidth = (Window.size[0] - gwidth) / 2
+            self.ids.container.padding = [pwidth, 0, pwidth, 0]
+#        k = 1/2         # width coefficient
+#        if True: # Window.size[0] <= k * Window.size[1]:
+#            self.ids.lpad.width = 0
+#            self.ids.rpad.width = 0
+#        else:
+#            gwidth = k * Window.size[1]
+#            pwidth = (Window.size[0] - gwidth) / 2
+#            self.ids.lpad.width = pwidth
+#            self.ids.rpad.width = pwidth
+        
     
     def undo(self, dt=0):
         if self.hold:

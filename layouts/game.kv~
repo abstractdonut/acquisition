@@ -1,5 +1,6 @@
 <GameScreen>:
     GridLayout:
+        id: container
         rows: 8
         cols: 1
         GridLayout:
@@ -34,7 +35,8 @@
                 rows: 1
                 cols: 3
                 size_hint: None, 1
-                pos: self.parent.pos
+                center_x: self.parent.center_x
+                y: self.parent.y
                 ImageButton:
                     id: undo
                     on_release: root.undo()
@@ -48,9 +50,9 @@
                     on_release: root.redo()
                     source: "images/icons/redo_black.png"
         FloatLayout:
-            size_hint: 1, .75
+            size_hint: 1, .075
         FloatLayout:
-            size_hint: 1, .75
+            size_hint: 1, .075
             GridLayout:
                 id: nav
                 rows: 1
@@ -74,14 +76,15 @@
                     on_release: root.goto_help()
                     source: "images/icons/help_black.png"
         FloatLayout:
-            size_hint: 1, .75
-        FloatLayout:
-            size_hint: 1, .75
-            ImageButton:
-                pos: self.parent.pos
-                #size_hint: None, 1
-                on_release: app.root.escape()
-                source: "images/icons/back.png"
+            size_hint: 1, .075
+# DISABLE/ENABLE BUTTON BY (UN)COMMENTING
+#        FloatLayout:
+#            size_hint: 1, .1
+#            ImageButton:
+#                pos: self.parent.pos
+#                #size_hint: None, 1
+#                on_release: app.root.escape()
+#                source: "images/icons/back.png"
 
 <ChipPiece>:
     size_hint: None, None

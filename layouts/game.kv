@@ -1,5 +1,6 @@
 <GameScreen>:
     GridLayout:
+        id: container
         rows: 8
         cols: 1
         GridLayout:
@@ -34,7 +35,8 @@
                 rows: 1
                 cols: 3
                 size_hint: None, 1
-                pos: self.parent.pos
+                center_x: self.parent.center_x
+                y: self.parent.y
                 ImageButton:
                     id: undo
                     on_release: root.undo()
@@ -75,6 +77,7 @@
                     source: "images/icons/help_black.png"
         FloatLayout:
             size_hint: 1, .075
+# DISABLE/ENABLE BUTTON BY (UN)COMMENTING
         FloatLayout:
             size_hint: 1, .1
             ImageButton:

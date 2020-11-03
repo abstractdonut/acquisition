@@ -1,24 +1,13 @@
 <AboutScreen>:
-    GridLayout:
-        rows: 3
-        cols: 1
-        TitleLabel:
-            id: title
-            size_hint: 1, .35
-            text: "ABOUT"
-        ScrollView:
-            do_scroll_x: False
-            do_scroll_y: True    
-            AboutLayout
-        ImageButton:
-            size_hint: 1, 0.1
-            on_release: app.root.escape()
-            source: "images/icons/back.png"
+    ScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
         
+        AboutLayout
 
 <AboutLayout@GridLayout>:
     rows: 1
-    cols: 1     # Change to 3 in desktop version
+    cols: 3
     
     size_hint: 1, 1
     
@@ -26,14 +15,15 @@
         size_hint: .1, 1
         text: ''
     GridLayout:
-        rows: 5
+        rows: 6     # 4 FOR ANDROID, 6 FOR DESKTOP
         cols: 1
         size_hint: .4, 1
-     
-## Enable these in desktop version   
-#        Label:
-#            size_hint: 1, .33
-#            text: ''
+        
+# DISABLE FOR ANDROID, ENABLE FOR DESKTOP
+        Label:
+            size_hint: 1, .33
+            text: ''
+# END
         
         Paragraph:
             text: "Created by [color=d4af37]David Grischuk[/color] and [color=d4af37]Micah Borden[/color]"
@@ -52,11 +42,15 @@
             on_ref_press:
                 import webbrowser
                 webbrowser.open('https://www.freepik.com/free-vector/elegant-white-texture-background_6765110.htm#page=1&query=white%20texture&position=12#&position=12')
+        
+        ImageButton:
+            size_hint: 1, 0.33
+            on_release: app.root.escape()
+            source: "images/icons/back.png"
     
-## Enable these in desktop version
-#    Label:
-#        size_hint: .1, 1
-#        text: ''
+    Label:
+        size_hint: .1, 1
+        text: ''
 
 
 
