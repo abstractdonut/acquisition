@@ -1,0 +1,16 @@
+--dist_name=acquisition
+--private .
+--package=com.github.abstractdonut.acquisition
+--name "Acquisition"
+--bootstrap=sdl2
+--requirements=python3,kivy,pygame,libffi,openssl,android
+--blacklist=blacklist.txt
+--arch=armeabi-v7a
+--sdk_dir /home/micah/android/
+--ndk_dir /home/micah/android/android-ndk-r19c/
+--android_api 28
+--ndk-api 21
+--version 0.2.4
+--icon "images/logo/square/xxxhdpi.png"
+--presplash "images/logo/square/splash_enhanced(4x).png"
+--debug

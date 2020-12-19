@@ -1,0 +1,14 @@
+*/dist/*
+*/inspect/*
+*/specs/*
+*/docs/*
+*/unused*
+*/keystore*
+*.apk
+*.blacklist.txt
+*.keystore
+*.p4a
+*.sh
+*~
+*notes
+*todo

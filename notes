@@ -1,0 +1,56 @@
+Here's a list describing some of the project structure
+
++ blacklist.txt     filename patterns to exclude from apks built with p4a
++ .gitignore        filename patterns to exclude from git repository
++ inspect7.sh       extracts the contents of the armeabi-v7a android build
+                    into inspect/v7a so that the contents of the apk can be
+                    inspected; the apk must be in the project root directory
+                    for this to work
++ inspect8.sh       like inspect7.sh except for use with the armeabi-v8a build
++ make-apks.sh      creates the android packages for distribution
++ main.py           acquisition entry point on linux and windows; must be run
+                    with python3 and requires a full installation of kivy;
+                    dist/windows provides a binary which makes it possible to
+                    run acquisition on machines without proper requirements
++ specs/            dedicated location for both .spec files used with p4a
++ modules/          python source files for acquisition, except main.py
++ layouts/          .kv layout files used by kivy
+                    
+
+--------------------------------------------------------------------------------
+
+Here's a list of things which might go wrong while running p4a.
+
++ An error that involves Java might come from using the wrong java version. See
+    https://github.com/kivy/buildozer/issues/862
+  In particular, when I ran into this issue, davidBoertjes comment solved my
+  problem.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

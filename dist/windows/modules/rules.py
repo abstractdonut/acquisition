@@ -1,2 +1,0 @@
-class RulesScreen(Screen):
-    pass
